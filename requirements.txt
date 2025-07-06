@@ -1,0 +1,25 @@
+# AI 和機器學習相關
+langchain
+langchain-community
+faiss-cpu
+sentence-transformers
+langchain-google-genai
+google-generativeai
+
+# Web API 框架
+fastapi
+uvicorn
+pydantic
+
+# 環境變數管理
+python-dotenv
+
+# 文本處理
+tiktoken
+
+# 日誌和工具
+python-multipart
+
+# 基礎依賴
+numpy
+scikit-learn 

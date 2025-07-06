@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  aiops-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-pro}
+      - GEMINI_TEMPERATURE=${GEMINI_TEMPERATURE:-0.1}
+      - GEMINI_MAX_TOKENS=${GEMINI_MAX_TOKENS:-500}
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - KNOWLEDGE_FILE=${KNOWLEDGE_FILE:-summary.txt}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./summary.txt:/app/summary.txt:ro
+      - ./knowledgebase.txt:/app/knowledgebase.txt:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s 
