@@ -71,6 +71,9 @@ class HealthResponse(BaseModel):
     status: str = Field(..., description="服務狀態")
     message: str = Field(..., description="狀態訊息")
     version: str = Field(..., description="API 版本")
+    timestamp: str = Field(..., description="檢查時間戳")
+    components: Dict[str, str] = Field(..., description="各組件狀態")
+    environment: Dict[str, str] = Field(..., description="環境資訊")
 
 # 全域變數
 qa_system = None
@@ -113,17 +116,88 @@ async def root():
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """健康檢查端點"""
+    import datetime
+    
     try:
-        # 檢查問答系統是否正常
-        qa_system = get_qa_system()
+        # 初始化組件狀態
+        components = {}
+        environment = {}
         
-        # 執行簡單測試
-        test_result = qa_system.ask_question("測試")
+        # 檢查環境變數
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if api_key:
+            masked_key = api_key[:4] + "*" * (len(api_key) - 8) + api_key[-4:] if len(api_key) > 8 else "****"
+            environment["api_key"] = f"已設定 ({masked_key})"
+        else:
+            environment["api_key"] = "未設定"
+            components["api_key"] = "error"
+        
+        # 檢查模型設定
+        model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-lite")
+        temperature = os.getenv("GEMINI_TEMPERATURE", "0.1")
+        max_tokens = os.getenv("GEMINI_MAX_TOKENS", "200")
+        environment["model"] = model_name
+        environment["temperature"] = temperature
+        environment["max_tokens"] = max_tokens
+        
+        # 檢查知識庫檔案
+        knowledge_file = os.getenv("KNOWLEDGE_FILE", "knowledgebase.txt")
+        if os.path.exists(knowledge_file):
+            file_size = os.path.getsize(knowledge_file)
+            environment["knowledge_file"] = f"{knowledge_file} ({file_size} bytes)"
+            components["knowledge_base"] = "healthy"
+        else:
+            environment["knowledge_file"] = f"{knowledge_file} (檔案不存在)"
+            components["knowledge_base"] = "error"
+        
+        # 檢查問答系統
+        try:
+            qa_system = get_qa_system()
+            components["qa_system"] = "healthy"
+            
+            # 執行簡單測試
+            test_result = qa_system.ask_question("測試")
+            if test_result.get("status") == "success":
+                components["ai_model"] = "healthy"
+            else:
+                components["ai_model"] = "warning"
+        except Exception as e:
+            components["qa_system"] = "error"
+            components["ai_model"] = "error"
+            logger.error(f"問答系統檢查失敗: {str(e)}")
+        
+        # 檢查 API 服務
+        components["api_server"] = "healthy"
+        
+        # 檢查記憶體使用
+        import psutil
+        memory = psutil.virtual_memory()
+        environment["memory_usage"] = f"{memory.percent}%"
+        environment["memory_available"] = f"{memory.available // (1024**3)} GB"
+        
+        # 檢查磁碟空間
+        disk = psutil.disk_usage('.')
+        environment["disk_usage"] = f"{disk.percent}%"
+        environment["disk_free"] = f"{disk.free // (1024**3)} GB"
+        
+        # 判斷整體狀態
+        if "error" in components.values():
+            status = "unhealthy"
+            message = "部分組件異常"
+        elif "warning" in components.values():
+            status = "degraded"
+            message = "服務運行中，部分組件警告"
+        else:
+            status = "healthy"
+            message = "所有組件正常運行"
         
         return HealthResponse(
-            status="healthy",
-            message="服務正常運行",
-            version=os.getenv("API_VERSION", "1.0.0")
+            status=status,
+            message=message,
+            version=os.getenv("API_VERSION", "1.0.0"),
+            timestamp=datetime.datetime.now().isoformat(),
+            components=components,
+            environment=environment
         )
     except Exception as e:
         logger.error(f"健康檢查失敗: {str(e)}")

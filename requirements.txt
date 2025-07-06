@@ -20,6 +20,9 @@ tiktoken
 # 日誌和工具
 python-multipart
 
+# 系統監控
+psutil
+
 # 基礎依賴
 numpy
 scikit-learn 

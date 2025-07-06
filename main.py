@@ -45,19 +45,61 @@ class TrendMicroQASystem:
     def _validate_api_key(self):
         """驗證 Google API Key 和模型設定，並加強安全性提示"""
         api_key = os.getenv("GOOGLE_API_KEY")
+        
+        # 基本存在性檢查
         if not api_key:
             logger.error("[安全警告] 未設定 GOOGLE_API_KEY，系統將無法連線 Gemini API！")
             raise ValueError("請設定 GOOGLE_API_KEY 環境變數，否則無法啟動問答服務。")
-        if len(api_key) < 20 or not api_key.startswith("AI"):  # Gemini API Key 通常以 AI 開頭且長度較長
-            logger.error(f"[安全警告] GOOGLE_API_KEY 格式異常: {api_key}")
-            raise ValueError("GOOGLE_API_KEY 格式不正確，請檢查您的金鑰是否正確複製。")
+        
+        # 移除空白字符
+        api_key = api_key.strip()
+        if not api_key:
+            logger.error("[安全警告] GOOGLE_API_KEY 為空字串！")
+            raise ValueError("GOOGLE_API_KEY 不能為空字串。")
+        
+        # 格式驗證
+        if len(api_key) < 20:
+            logger.error(f"[安全警告] GOOGLE_API_KEY 長度不足: {len(api_key)} 字符")
+            raise ValueError("GOOGLE_API_KEY 長度不足，請檢查金鑰是否完整。")
+        
+        if not api_key.startswith("AI"):
+            logger.error(f"[安全警告] GOOGLE_API_KEY 格式異常，應以 'AI' 開頭")
+            raise ValueError("GOOGLE_API_KEY 格式不正確，Gemini API Key 應以 'AI' 開頭。")
+        
+        # 安全檢查
         if "demo" in api_key.lower():
             logger.warning("[安全警告] 偵測到 demo 測試金鑰，請勿在生產環境使用！")
-        logger.info("Google API Key 驗證成功")
+        
+        if "test" in api_key.lower():
+            logger.warning("[安全警告] 偵測到測試金鑰，請確認是否為正式環境金鑰。")
+        
+        # 遮罩顯示（只顯示前4位和後4位）
+        masked_key = api_key[:4] + "*" * (len(api_key) - 8) + api_key[-4:] if len(api_key) > 8 else "****"
+        logger.info(f"Google API Key 驗證成功: {masked_key}")
         
         # 驗證模型設定
         model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-lite")
-        logger.info(f"Gemini 模型設定: {model_name}")
+        temperature = os.getenv("GEMINI_TEMPERATURE", "0.1")
+        max_tokens = os.getenv("GEMINI_MAX_TOKENS", "200")
+        
+        logger.info(f"Gemini 模型設定: {model_name}, 溫度: {temperature}, 最大 Token: {max_tokens}")
+        
+        # 驗證模型參數
+        try:
+            temp_val = float(temperature)
+            if temp_val < 0 or temp_val > 2:
+                logger.warning(f"[配置警告] 溫度值 {temp_val} 超出建議範圍 (0-2)")
+        except ValueError:
+            logger.error(f"[配置錯誤] 溫度值 '{temperature}' 不是有效數字")
+            raise ValueError("GEMINI_TEMPERATURE 必須是有效數字")
+        
+        try:
+            tokens_val = int(max_tokens)
+            if tokens_val < 1 or tokens_val > 8192:
+                logger.warning(f"[配置警告] 最大 Token 數 {tokens_val} 超出建議範圍 (1-8192)")
+        except ValueError:
+            logger.error(f"[配置錯誤] 最大 Token 數 '{max_tokens}' 不是有效整數")
+            raise ValueError("GEMINI_MAX_TOKENS 必須是有效整數")
     
     def _load_knowledge_base(self) -> str:
         """載入知識庫檔案"""

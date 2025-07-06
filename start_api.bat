@@ -52,9 +52,36 @@ if not exist ".env" (
     )
 )
 
+REM 驗證環境變數
+echo 驗證環境變數...
+python -c "import os; from dotenv import load_dotenv; load_dotenv(); api_key=os.getenv('GOOGLE_API_KEY'); print('API Key 狀態:', '已設定' if api_key else '未設定')" 2>nul
+if errorlevel 1 (
+    echo 錯誤: 無法讀取 .env 檔案
+    echo 請檢查 .env 檔案格式是否正確
+    pause
+    exit /b 1
+)
+
+REM 檢查 API Key 格式
+python -c "import os; from dotenv import load_dotenv; load_dotenv(); api_key=os.getenv('GOOGLE_API_KEY'); exit(0 if api_key and len(api_key) >= 20 and api_key.startswith('AI') else 1)" 2>nul
+if errorlevel 1 (
+    echo 警告: Google API Key 格式可能不正確
+    echo 請確認 API Key 以 'AI' 開頭且長度至少 20 字符
+    echo.
+    echo 按任意鍵繼續或 Ctrl+C 取消...
+    pause
+)
+
 REM 安裝依賴套件
 echo 檢查並安裝依賴套件...
 pip install -r requirements.txt
+if errorlevel 1 (
+    echo 錯誤: 安裝依賴套件失敗
+    echo 請檢查網路連線或 requirements.txt 檔案
+    pause
+    exit /b 1
+)
+echo 依賴套件安裝完成
 
 REM 檢查知識庫檔案
 if not exist "summary.txt" (
@@ -62,11 +89,26 @@ if not exist "summary.txt" (
     if exist "knowledgebase.txt" (
         echo 使用 knowledgebase.txt 作為知識庫
         copy knowledgebase.txt summary.txt
+        echo 知識庫檔案複製完成
     ) else (
         echo 錯誤: 找不到知識庫檔案
+        echo 請確認 knowledgebase.txt 或 summary.txt 檔案存在
         pause
         exit /b 1
     )
+) else (
+    echo 知識庫檔案檢查完成
+)
+
+REM 檢查端口是否被佔用
+echo 檢查端口 8000 是否可用...
+netstat -an | findstr ":8000" >nul 2>&1
+if not errorlevel 1 (
+    echo 警告: 端口 8000 已被佔用
+    echo 請關閉其他使用該端口的程式或修改 API_PORT 環境變數
+    echo.
+    echo 按任意鍵繼續或 Ctrl+C 取消...
+    pause
 )
 
 REM 啟動 API 服務
@@ -83,6 +125,15 @@ echo.
 echo 按 Ctrl+C 停止服務
 echo.
 
+REM 啟動服務並處理錯誤
 python app.py
+if errorlevel 1 (
+    echo.
+    echo 錯誤: API 服務啟動失敗
+    echo 請檢查錯誤訊息並修正問題
+    echo.
+    pause
+    exit /b 1
+)
 
 pause 
