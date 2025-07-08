@@ -117,7 +117,6 @@ def test_file_structure() -> Dict[str, Any]:
         "start_api_enhanced.bat",
         "testing_tools/quick_test.bat",
         "docs/README.md",
-        "docs/PROJECT_STATUS.md",
         "docs/QUICK_START.md"
     ]
     

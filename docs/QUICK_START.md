@@ -129,7 +129,7 @@ python tests/test_comprehensive.py
 ## 📞 緊急聯絡
 
 如果以上方法都無法解決問題：
-1. 檢查 `PROJECT_STATUS.md` 中的詳細故障排除指南
+1. 檢查 `README.md` 中的詳細故障排除指南
 2. 查看 `README.md` 中的完整設定說明
 3. 確認所有必要檔案都存在且格式正確
 

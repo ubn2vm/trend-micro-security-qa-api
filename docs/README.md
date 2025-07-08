@@ -220,7 +220,7 @@ trend-micro-security-qa-api/
 ├── .env.example           # Secure environment template
 ├── .gitignore            # Security-focused ignore rules
 ├── README.md             # Security documentation
-├── PROJECT_STATUS.md     # Security project status
+├── PROJECT_STATUS.md     # Security project status (local only)
 ├── docker.md             # Secure deployment guide
 ├── knowledgebase.txt     # Threat intelligence data
 ├── summary.txt           # Secure knowledge base
@@ -295,7 +295,7 @@ curl -X POST "http://localhost:8000/ask" \
 - 🔄 **Security CI/CD**: GitHub Actions security workflow (planned)
 - 🔄 **Cloud Security**: Azure secure container deployment (planned)
 
-For detailed security progress, see [PROJECT_STATUS.md](PROJECT_STATUS.md)
+For detailed security progress, see [README.md](README.md) for current status
 
 ## 🐳 Secure Docker Deployment
 
@@ -368,7 +368,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Security Documentation**: [API Security Docs](http://localhost:8000/docs)
 - **Security Issues**: [GitHub Security Issues](https://github.com/ubn2vm/trend-micro-security-qa-api/issues)
-- **Security Status**: [PROJECT_STATUS.md](PROJECT_STATUS.md)
+- **Security Status**: [README.md](README.md) for current status
 - **Security Guide**: [QUICK_START.md](QUICK_START.md)
 
 ---
