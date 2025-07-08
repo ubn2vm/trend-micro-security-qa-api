@@ -1,8 +1,20 @@
+# 趨勢科技資安報告智能問答 API 專案 - .gitignore
+# 專案名稱: 趨勢科技資安報告智能問答 API
+# 目標: 打造一個能快速、精準證明核心能力的本地原型
+
 # 環境變數和敏感資訊
 .env
 .env.local
 .env.production
 .env.staging
+config.env
+*.env
+
+# API Keys 和敏感配置
+*api_key*
+*secret*
+*password*
+*token*
 
 # Python
 __pycache__/
@@ -198,4 +210,119 @@ tmp/
 # 其他
 *.bak
 *.backup
-*.old 
+*.old
+
+# 專案特定忽略規則
+
+# 虛擬環境
+aiops/
+venv/
+env/
+
+# 測試檔案和報告
+test_*.py
+*_test.py
+test_results/
+coverage/
+
+# 開發工具配置
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 容器化相關
+.dockerignore
+docker-compose.override.yml
+
+# 本地開發檔案
+local_*
+dev_*
+debug_*
+
+# 快取和臨時檔案
+.cache/
+*.cache
+temp/
+tmp/
+
+# 備份檔案
+*.bak
+*.backup
+*.old
+
+# 系統檔案
+.DS_Store
+Thumbs.db
+
+# 敏感資訊
+secrets/
+keys/
+*.key
+*.pem
+*.p12
+
+# 大型檔案
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# 資料庫檔案
+*.db
+*.sqlite
+*.sqlite3
+
+# 模型檔案 (如果有的話)
+models/
+*.model
+*.pkl
+*.joblib
+
+# 向量資料庫檔案
+*.faiss
+*.index
+
+# 日誌檔案
+logs/
+*.log
+
+# 環境變數
+.env*
+!.env.example
+
+# 測試覆蓋率報告
+htmlcov/
+.coverage
+coverage.xml
+
+# 建置輸出
+build/
+dist/
+*.egg-info/
+
+# 暫存 Python 檔案
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter Notebook 檢查點
+.ipynb_checkpoints/
+
+# 本地配置檔案
+local_config.py
+config_local.py
+
+# 開發工具暫存檔案
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 容器化暫存檔案
+.dockerignore
+docker-compose.override.yml
+
+# 專案狀態追蹤 (已轉換為 .gitignore)
+PROJECT_STATUS.md 

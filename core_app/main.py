@@ -21,20 +21,24 @@ logger = logging.getLogger(__name__)
 class TrendMicroQASystem:
     """趨勢科技資安報告智能問答系統"""
     
-    def __init__(self, knowledge_file: str = "knowledgebase.txt"):
+    def __init__(self, knowledge_file: str = None):
         """
         初始化問答系統
         
         Args:
-            knowledge_file: 知識庫檔案路徑
+            knowledge_file: 知識庫檔案路徑，如果為 None 則使用環境變數 KNOWLEDGE_FILE
         """
+        # 如果沒有指定檔案，使用環境變數
+        if knowledge_file is None:
+            knowledge_file = os.getenv("KNOWLEDGE_FILE", "summary.txt")
         self.knowledge_file = knowledge_file
         self.vector_store = None
         self.qa_chain = None
         self.embeddings = None
         
-        # 載入環境變數
-        load_dotenv()
+        # 載入環境變數 - 先載入 config.env，再載入 .env（API Key）
+        load_dotenv('../config/config.env')
+        load_dotenv('../.env')
         
         # 驗證 API Key
         self._validate_api_key()

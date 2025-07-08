@@ -6,8 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
-# 載入環境變數
-load_dotenv()
+# 載入環境變數 - 先載入 config.env，再載入 .env（API Key）
+load_dotenv('../config/config.env')
+load_dotenv('../.env')
 
 # 導入我們的問答系統
 from main import TrendMicroQASystem
@@ -21,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 # 建立 FastAPI 應用程式
 app = FastAPI(
-    title=os.getenv("API_TITLE", "趨勢科技資安報告智能問答 API"),
-    description=os.getenv("API_DESCRIPTION", "基於趨勢科技2025年網路風險報告的智能問答系統"),
+    title=os.getenv("API_TITLE", "Trend Micro Security Intelligence API"),
+    description=os.getenv("API_DESCRIPTION", "AI-powered cybersecurity intelligence platform based on Trend Micro 2025 Cyber Risk Report"),
     version=os.getenv("API_VERSION", "1.0.0"),
     docs_url="/docs",
     redoc_url="/redoc"
@@ -39,41 +40,41 @@ app.add_middleware(
 
 # Pydantic 模型定義
 class QuestionRequest(BaseModel):
-    """問題請求模型"""
-    question: str = Field(..., description="使用者問題", min_length=1, max_length=500)
+    """Question request model"""
+    question: str = Field(..., description="User question", min_length=1, max_length=500)
     
     class Config:
         schema_extra = {
             "example": {
-                "question": "什麼是網路風險指數 (CRI)？"
+                "question": "What is Cyber Risk Index (CRI)?"
             }
         }
 
 class QuestionResponse(BaseModel):
-    """問題回應模型"""
-    question: str = Field(..., description="原始問題")
-    answer: str = Field(..., description="AI 生成的答案")
-    sources: List[str] = Field(default=[], description="來源文檔片段")
-    status: str = Field(..., description="回應狀態")
+    """Question response model"""
+    question: str = Field(..., description="Original question")
+    answer: str = Field(..., description="AI generated answer")
+    sources: List[str] = Field(default=[], description="Source document fragments")
+    status: str = Field(..., description="Response status")
     
     class Config:
         schema_extra = {
             "example": {
-                "question": "什麼是網路風險指數 (CRI)？",
-                "answer": "網路風險指數 (CRI) 是一個量化組織整體安全風險的指標...",
-                "sources": ["CREM 計算企業的網路風險指數 (CRI)，該指標基於整合各項資產和風險因子評分來量化組織的整體安全風險..."],
+                "question": "What is Cyber Risk Index (CRI)?",
+                "answer": "Cyber Risk Index (CRI) is a metric that quantifies an organization's overall security risk...",
+                "sources": ["CREM calculates the Cyber Risk Index (CRI), which quantifies an organization's overall security risk based on integrated asset and risk factor scores..."],
                 "status": "success"
             }
         }
 
 class HealthResponse(BaseModel):
-    """健康檢查回應模型"""
-    status: str = Field(..., description="服務狀態")
-    message: str = Field(..., description="狀態訊息")
-    version: str = Field(..., description="API 版本")
-    timestamp: str = Field(..., description="檢查時間戳")
-    components: Dict[str, str] = Field(..., description="各組件狀態")
-    environment: Dict[str, str] = Field(..., description="環境資訊")
+    """Health check response model"""
+    status: str = Field(..., description="Service status")
+    message: str = Field(..., description="Status message")
+    version: str = Field(..., description="API version")
+    timestamp: str = Field(..., description="Check timestamp")
+    components: Dict[str, str] = Field(..., description="Component statuses")
+    environment: Dict[str, str] = Field(..., description="Environment information")
 
 # 全域變數
 qa_system = None
@@ -83,7 +84,7 @@ def get_qa_system() -> TrendMicroQASystem:
     global qa_system
     if qa_system is None:
         try:
-            knowledge_file = os.getenv("KNOWLEDGE_FILE", "knowledgebase.txt")
+            knowledge_file = os.getenv("KNOWLEDGE_FILE", "summary.txt")
             qa_system = TrendMicroQASystem(knowledge_file=knowledge_file)
             logger.info("問答系統初始化成功")
         except Exception as e:
@@ -105,17 +106,19 @@ async def startup_event():
 
 @app.get("/", response_model=Dict[str, str])
 async def root():
-    """根路徑 - API 資訊"""
+    """Root endpoint - API Information"""
     return {
-        "message": "趨勢科技資安報告智能問答 API",
+        "message": "Trend Micro Security Intelligence API",
         "version": os.getenv("API_VERSION", "1.0.0"),
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
+        "examples": "/examples",
+        "info": "/info"
     }
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
-    """健康檢查端點"""
+    """Health check endpoint"""
     import datetime
     
     try:
@@ -127,9 +130,9 @@ async def health_check():
         api_key = os.getenv("GOOGLE_API_KEY")
         if api_key:
             masked_key = api_key[:4] + "*" * (len(api_key) - 8) + api_key[-4:] if len(api_key) > 8 else "****"
-            environment["api_key"] = f"已設定 ({masked_key})"
+            environment["api_key"] = f"Configured ({masked_key})"
         else:
-            environment["api_key"] = "未設定"
+            environment["api_key"] = "Not configured"
             components["api_key"] = "error"
         
         # 檢查模型設定
@@ -141,13 +144,13 @@ async def health_check():
         environment["max_tokens"] = max_tokens
         
         # 檢查知識庫檔案
-        knowledge_file = os.getenv("KNOWLEDGE_FILE", "knowledgebase.txt")
+        knowledge_file = os.getenv("KNOWLEDGE_FILE", "summary.txt")
         if os.path.exists(knowledge_file):
             file_size = os.path.getsize(knowledge_file)
             environment["knowledge_file"] = f"{knowledge_file} ({file_size} bytes)"
             components["knowledge_base"] = "healthy"
         else:
-            environment["knowledge_file"] = f"{knowledge_file} (檔案不存在)"
+            environment["knowledge_file"] = f"{knowledge_file} (File not found)"
             components["knowledge_base"] = "error"
         
         # 檢查問答系統
@@ -183,13 +186,13 @@ async def health_check():
         # 判斷整體狀態
         if "error" in components.values():
             status = "unhealthy"
-            message = "部分組件異常"
+            message = "Some components are unhealthy"
         elif "warning" in components.values():
             status = "degraded"
-            message = "服務運行中，部分組件警告"
+            message = "Service running with some component warnings"
         else:
             status = "healthy"
-            message = "所有組件正常運行"
+            message = "All components are running normally"
         
         return HealthResponse(
             status=status,
@@ -200,16 +203,16 @@ async def health_check():
             environment=environment
         )
     except Exception as e:
-        logger.error(f"健康檢查失敗: {str(e)}")
-        raise HTTPException(status_code=503, detail=f"服務異常: {str(e)}")
+        logger.error(f"Health check failed: {str(e)}")
+        raise HTTPException(status_code=503, detail=f"Service error: {str(e)}")
 
 @app.post("/ask", response_model=QuestionResponse)
 async def ask_question(request: QuestionRequest, qa_system: TrendMicroQASystem = Depends(get_qa_system)):
     """
-    智能問答端點
+    Intelligent Q&A endpoint
     
-    - **question**: 使用者問題
-    - **returns**: AI 生成的答案和相關來源
+    - **question**: User question
+    - **returns**: AI generated answer and related sources
     """
     try:
         logger.info(f"收到問題請求: {request.question}")
@@ -233,27 +236,27 @@ async def ask_question(request: QuestionRequest, qa_system: TrendMicroQASystem =
 
 @app.get("/examples", response_model=List[str])
 async def get_example_questions():
-    """取得範例問題列表"""
+    """Get example questions list"""
     examples = [
-        "什麼是網路風險指數 (CRI)？",
-        "2024年的整體平均 CRI 是多少？",
-        "哪些行業的 CRI 最高？",
-        "什麼是 CREM？",
-        "如何降低企業的網路風險？",
-        "什麼是 Trend Vision One？",
-        "企業面臨的主要網路威脅有哪些？",
-        "如何改善網路安全態勢？"
+        "What is Cyber Risk Index (CRI)?",
+        "What is the overall average CRI for 2024?",
+        "Which industries have the highest CRI?",
+        "What is CREM?",
+        "How to reduce enterprise cyber risk?",
+        "What is Trend Vision One?",
+        "What are the main cyber threats facing enterprises?",
+        "How to improve cybersecurity posture?"
     ]
     return examples
 
 @app.get("/info", response_model=Dict[str, Any])
 async def get_api_info():
-    """取得 API 詳細資訊"""
+    """Get API detailed information"""
     return {
-        "title": app.title,
-        "description": app.description,
+        "title": "Trend Micro Security Intelligence API",
+        "description": "AI-powered cybersecurity intelligence platform based on Trend Micro 2025 Cyber Risk Report",
         "version": app.version,
-        "knowledge_base": os.getenv("KNOWLEDGE_FILE", "knowledgebase.txt"),
+        "knowledge_base": os.getenv("KNOWLEDGE_FILE", "summary.txt"),
         "endpoints": {
             "root": "/",
             "health": "/health",
