@@ -84,7 +84,7 @@ def get_qa_system() -> TrendMicroQASystem:
     global qa_system
     if qa_system is None:
         try:
-            knowledge_file = os.getenv("KNOWLEDGE_FILE", "summary.txt")
+            knowledge_file = os.getenv("KNOWLEDGE_FILE", os.path.join(os.path.dirname(__file__), "summary.txt"))
             qa_system = TrendMicroQASystem(knowledge_file=knowledge_file)
             logger.info("問答系統初始化成功")
         except Exception as e:

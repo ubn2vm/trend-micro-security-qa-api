@@ -26,3 +26,4 @@ psutil
 # 基礎依賴
 numpy
 scikit-learn 
+gradio 
