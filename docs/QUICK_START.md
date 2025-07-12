@@ -1,139 +1,262 @@
-# 🚀 快速啟動參考卡片
+# Quick Start Guide - Trend Micro Security QA API
 
-## 📋 標準啟動流程
+## Overview
 
-### **Windows 環境**
+This guide provides step-by-step instructions for deploying the Trend Micro Security QA API using three different methods:
+1. **One-Click Windows Deployment** (Recommended for interviews)
+2. **Manual Python Virtual Environment Setup**
+3. **Docker Container Deployment**
+
+## Quick Start - One-Click Deployment (Windows)
+
+### Prerequisites
+- Windows 10/11
+- Python 3.8+ installed
+- Internet connection for API key and dependencies
+
+### Step 1: Get Google API Key
+1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy the generated key (starts with 'AI')
+
+### Step 2: One-Click Launch
 ```bash
-# 方法 1: 使用啟動腳本 (推薦)
+# Execute the main startup script
 start.bat
+```
 
-# 方法 2: 手動啟動
+**What happens automatically:**
+- Python environment detection
+- Virtual environment creation (`aiops/`)
+- Dependency installation from `core_app/requirements.txt`
+- Environment configuration setup
+- API key validation
+- Knowledge base initialization
+- Port availability check
+- API server startup
+
+### Step 3: Verify Deployment
+After successful startup, you'll see:
+```
+===========================================
+Starting Trend Micro Security QA API
+===========================================
+
+[DOCS] API Documentation: http://localhost:8000/docs
+[HEALTH] Health Check: http://localhost:8000/health
+[EXAMPLES] Example Questions: http://localhost:8000/examples
+[ROOT] Root Path: http://localhost:8000/
+
+Press Ctrl+C to stop the server
+```
+
+### Step 4: Test the API
+Open your browser and visit:
+- **API Documentation**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
+- **Example Questions**: http://localhost:8000/examples
+
+## Manual Setup (Alternative Method)
+
+### Step 1: Environment Setup
+```bash
+# Run environment setup script
+setup_env.bat
+```
+
+This script will:
+- Create `.env` file from `config/env.example`
+- Open Notepad for API key configuration
+- Guide you through Google API key setup
+
+### Step 2: Configure API Key
+Edit the `.env` file:
+```env
+# Google API Key - Replace with your actual API Key
+# Get from https://makersuite.google.com/app/apikey
+GOOGLE_API_KEY=your_actual_api_key_here
+
+# Other settings are loaded from config.env automatically
+# Override here if needed:
+# GEMINI_MODEL=gemini-2.0-flash-lite
+# GEMINI_TEMPERATURE=0.1
+# GEMINI_MAX_TOKENS=200
+```
+
+### Step 3: Manual Virtual Environment Setup
+```bash
+# Create virtual environment
+python -m venv aiops
+
+# Activate virtual environment
 call aiops\Scripts\activate.bat
-python app.py
+
+# Install dependencies
+pip install -r core_app\requirements.txt
 ```
 
-### **Linux/Mac 環境**
+### Step 4: Start API Server
 ```bash
-# 啟動虛擬環境
-source aiops/bin/activate
+# Ensure virtual environment is activated
+call aiops\Scripts\activate.bat
 
-# 啟動 API 服務
-python app.py
+# Start the API server
+python core_app\app.py
 ```
 
-### **Docker 環境**
+## Docker Deployment
+
+### Prerequisites
+- Docker Desktop installed
+- Docker Compose available
+
+### Step 1: Configure Environment
 ```bash
-# 一鍵啟動
+# Copy environment template
+copy config\env.example .env
+
+# Edit .env file with your API key
+notepad .env
+```
+
+### Step 2: Docker Compose Deployment
+```bash
+# Start services
 docker-compose up -d
 
-# 查看狀態
+# Check service status
 docker-compose ps
+
+# View logs
+docker-compose logs -f
 ```
 
-## 🌐 API 端點快速訪問
+### Step 3: Verify Docker Deployment
+- **API Documentation**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
+- **Container Status**: `docker-compose ps`
 
-| 端點 | 用途 | URL |
-|------|------|-----|
-| 📚 API 文檔 | Swagger UI | http://localhost:8000/docs |
-| 💚 健康檢查 | 系統狀態 | http://localhost:8000/health |
-| ℹ️ API 資訊 | 詳細資訊 | http://localhost:8000/info |
-| 📝 範例問題 | 測試問題 | http://localhost:8000/examples |
+## API Endpoints Reference
 
-## 🔧 常見問題快速解決
+| Endpoint | Purpose | URL | Method |
+|----------|---------|-----|--------|
+| API Documentation | Swagger UI | http://localhost:8000/docs | GET |
+| Health Check | System Status | http://localhost:8000/health | GET |
+| API Information | Detailed Info | http://localhost:8000/info | GET |
+| Example Questions | Test Questions | http://localhost:8000/examples | GET |
+| Ask Question | Q&A Service | http://localhost:8000/ask | POST |
 
-### **❌ 拒絕連線 (Connection Refused)**
-**症狀**: 瀏覽器顯示 "無法連接到此網站"
-**原因**: API 服務未啟動
-**解決**:
-1. 確認命令列顯示 `(aiops)` 虛擬環境
-2. 檢查是否有錯誤訊息
-3. 重新執行 `python app.py`
+## Testing & Validation
 
-### **📦 ModuleNotFoundError: No module named 'psutil'**
-**症狀**: 啟動時出現模組找不到錯誤
-**原因**: 缺少依賴套件
-**解決**:
+### Quick Test Scripts
 ```bash
-pip install psutil
-# 或使用專案腳本
-python_config\pip.bat install psutil
+# Automated comprehensive testing
+testing_tools\quick_test.bat
+
+# Project validation
+testing_tools\validate_project.bat
+
+# Security testing
+python testing_tools\test_security.py
 ```
 
-### **🔑 API Key 驗證失敗**
-**症狀**: 啟動時顯示 API Key 錯誤
-**原因**: 環境變數設定錯誤
-**解決**:
-1. 檢查 `.env` 檔案是否存在
-2. 確認 `GOOGLE_API_KEY` 格式正確
-3. API Key 應以 "AI" 開頭且長度至少 20 字符
-
-### **🔌 端口被佔用**
-**症狀**: 啟動時顯示端口已被使用
-**原因**: 其他服務使用端口 8000
-**解決**:
-1. 修改 `.env` 檔案中的 `API_PORT`
-2. 或關閉其他使用該端口的程式
-
-### **📝 測試腳本亂碼問題**
-**症狀**: 執行 `quick_test.bat` 時顯示亂碼
-**原因**: Windows 命令列編碼問題
-**解決**:
-1. **方案 1**: 使用修改後的 `quick_test.bat` (已修正編碼)
-2. **方案 2**: 使用英文版 `quick_test_en.bat` (避免編碼問題)
-
-### **🚀 啟動腳本亂碼問題**
-**症狀**: 執行 `start.bat` 時顯示亂碼
-**原因**: Windows 命令列編碼問題
-**解決**:
-1. **方案 1**: 使用修改後的 `start.bat` (已修正編碼，使用英文)
-2. **方案 2**: 使用增強版 `start_api_enhanced.bat` (包含重試機制)
-3. **方案 3**: 手動啟動 (避免編碼問題)
-   ```bash
-   call aiops\Scripts\activate.bat
-   python app.py
-   ```
-
-## 🧪 快速測試
-
-### **自動化測試腳本**
+### Manual API Testing
 ```bash
-# 方法 1: 使用修正版批次檔 (推薦)
-quick_test.bat
-
-# 方法 2: 使用英文版 (避免編碼問題)
-quick_test_en.bat
-```
-
-### **手動測試 API**
-```bash
-# 健康檢查
+# Health check
 curl http://localhost:8000/health
 
-# 或直接在瀏覽器訪問
-http://localhost:8000/health
-```
-
-### **測試問答功能**
-```bash
+# Ask a question
 curl -X POST "http://localhost:8000/ask" \
      -H "Content-Type: application/json" \
-     -d '{"question": "什麼是網路安全風險指數？"}'
+     -d '{"question": "What is Cyber Risk Index (CRI)?"}'
 ```
 
-### **綜合測試**
+### Comprehensive Testing
 ```bash
-# 執行完整的邊界情況、性能、安全性測試
+# Run all test suites
 python tests/test_comprehensive.py
+python tests/test_summary.py
+python tests/test_gemini_only.py
 ```
 
-## 📞 緊急聯絡
+## Troubleshooting
 
-如果以上方法都無法解決問題：
-1. 檢查 `README.md` 中的詳細故障排除指南
-2. 查看 `README.md` 中的完整設定說明
-3. 確認所有必要檔案都存在且格式正確
+### Connection Refused
+**Symptom**: Browser shows "Cannot connect to this website"
+**Cause**: API service not started
+**Solution**:
+1. Check command line for `(aiops)` virtual environment
+2. Look for error messages
+3. Re-run `python core_app\app.py`
+
+### ModuleNotFoundError
+**Symptom**: "No module named 'xxx'" error
+**Cause**: Missing dependencies
+**Solution**:
+```bash
+# Reinstall dependencies
+pip install -r core_app\requirements.txt
+```
+
+### API Key Validation Failed
+**Symptom**: API key error during startup
+**Cause**: Invalid or missing API key
+**Solution**:
+1. Check `.env` file exists
+2. Verify `GOOGLE_API_KEY` format (starts with 'AI', min 20 chars)
+3. Re-run `setup_env.bat` if needed
+
+### Port Already in Use
+**Symptom**: Port 8000 already in use
+**Cause**: Another service using port 8000
+**Solution**:
+1. Change port in `config/config.env`: `API_PORT=8001`
+2. Or close other applications using port 8000
+
+### Docker Issues
+**Symptom**: Docker container fails to start
+**Cause**: Configuration or resource issues
+**Solution**:
+```bash
+# Check Docker logs
+docker-compose logs
+
+# Rebuild container
+docker-compose down
+docker-compose up --build -d
+```
+
+## System Requirements
+
+### Minimum Requirements
+- **OS**: Windows 10/11, Linux, macOS
+- **Python**: 3.8+
+- **RAM**: 4GB
+- **Storage**: 2GB free space
+- **Network**: Internet connection for API calls
+
+### Recommended Requirements
+- **OS**: Windows 11, Ubuntu 20.04+, macOS 12+
+- **Python**: 3.11+
+- **RAM**: 8GB
+- **Storage**: 5GB free space
+- **Network**: Stable internet connection
+
+## Security Considerations
+
+### API Key Security
+- Never commit `.env` file to version control
+- Use environment variables in production
+- Rotate API keys regularly
+- Monitor API usage
+
+### Network Security
+- Use HTTPS in production
+- Implement rate limiting
+- Configure CORS properly
+- Monitor access logs
 
 ---
 
-**最後更新**: 2025-01-XX  
-**版本**: 1.0.0 
+**Compatibility**: Python 3.8+, Docker 20.10+ 

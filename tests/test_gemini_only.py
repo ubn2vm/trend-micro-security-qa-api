@@ -11,33 +11,26 @@ def test_imports():
     """測試必要的套件導入"""
     print("=== 測試套件導入 ===")
     
+    # 測試 Google Gemini 相關套件
+    from langchain_google_genai import ChatGoogleGenerativeAI
+    print("✅ langchain_google_genai 導入成功")
+    
+    from langchain.chains import RetrievalQA
+    print("✅ langchain.chains 導入成功")
+    
+    from langchain_community.embeddings import HuggingFaceEmbeddings
+    print("✅ langchain_community.embeddings 導入成功")
+    
+    from langchain_community.vectorstores import FAISS
+    print("✅ langchain_community.vectorstores 導入成功")
+    
+    # 測試不會導入 OpenAI 相關套件
     try:
-        # 測試 Google Gemini 相關套件
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        print("✅ langchain_google_genai 導入成功")
-        
-        from langchain.chains import RetrievalQA
-        print("✅ langchain.chains 導入成功")
-        
-        from langchain_community.embeddings import HuggingFaceEmbeddings
-        print("✅ langchain_community.embeddings 導入成功")
-        
-        from langchain_community.vectorstores import FAISS
-        print("✅ langchain_community.vectorstores 導入成功")
-        
-        # 測試不會導入 OpenAI 相關套件
-        try:
-            import langchain_openai
-            print("❌ 警告: 發現 langchain_openai 套件")
-            return False
-        except ImportError:
-            print("✅ 確認沒有 langchain_openai 套件")
-        
-        return True
-        
-    except ImportError as e:
-        print(f"❌ 導入失敗: {e}")
-        return False
+        import langchain_openai
+        print("❌ 警告: 發現 langchain_openai 套件")
+        assert False, "不應該有 langchain_openai 套件"
+    except ImportError:
+        print("✅ 確認沒有 langchain_openai 套件")
 
 def test_environment():
     """測試環境變數"""
@@ -47,41 +40,29 @@ def test_environment():
     
     # 檢查 Google API Key
     google_api_key = os.getenv("GOOGLE_API_KEY")
-    if google_api_key and google_api_key != "your_google_api_key_here":
-        print("✅ GOOGLE_API_KEY 已設定")
-    else:
-        print("⚠️ GOOGLE_API_KEY 未設定或使用預設值")
+    assert google_api_key and google_api_key != "your_google_api_key_here", "GOOGLE_API_KEY 未設定或使用預設值"
+    print("✅ GOOGLE_API_KEY 已設定")
     
     # 確認沒有 OpenAI API Key
     openai_api_key = os.getenv("OPENAI_API_KEY")
-    if openai_api_key:
-        print("❌ 警告: 發現 OPENAI_API_KEY 環境變數")
-        return False
-    else:
-        print("✅ 確認沒有 OPENAI_API_KEY 環境變數")
-    
-    return True
+    assert not openai_api_key, "不應該有 OPENAI_API_KEY 環境變數"
+    print("✅ 確認沒有 OPENAI_API_KEY 環境變數")
 
 def test_main_system():
     """測試主系統"""
     print("\n=== 測試主系統 ===")
     
-    try:
-        from main import TrendMicroQASystem
-        print("✅ TrendMicroQASystem 類別導入成功")
-        
-        # 檢查知識庫檔案
-        if os.path.exists("knowledgebase.txt"):
-            print("✅ knowledgebase.txt 檔案存在")
-        else:
-            print("❌ knowledgebase.txt 檔案不存在")
-            return False
-        
-        return True
-        
-    except Exception as e:
-        print(f"❌ 主系統測試失敗: {e}")
-        return False
+    from core_app.main import TrendMicroQASystem
+    print("✅ TrendMicroQASystem 類別導入成功")
+    
+    # 檢查知識庫檔案（此處可略過或改為檢查向量庫）
+    # assert os.path.exists("knowledgebase.txt"), "knowledgebase.txt 檔案不存在"
+    # print("✅ knowledgebase.txt 檔案存在")
+    
+    # 測試 RAG 問答系統初始化
+    qa_system = TrendMicroQASystem()
+    assert qa_system.vector_store is not None
+    assert qa_system.qa_chain is not None
 
 def main():
     """主測試函數"""
@@ -98,8 +79,11 @@ def main():
     total = len(tests)
     
     for test in tests:
-        if test():
+        try:
+            test()
             passed += 1
+        except Exception as e:
+            print(f"❌ 測試失敗: {e}")
         print()
     
     print("=" * 50)

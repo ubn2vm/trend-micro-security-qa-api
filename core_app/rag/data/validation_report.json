@@ -1,0 +1,19 @@
+{
+  "extraction_stats": {
+    "total_pages": 3,
+    "extracted_pages": 3,
+    "success_rate": 100.0,
+    "total_text_length": 7700
+  },
+  "quality_assessment": {
+    "quality_score": 90,
+    "issues": [
+      "可能存在編碼問題"
+    ],
+    "found_technical_terms": 5,
+    "sentence_count": 48,
+    "text_length": 7700
+  },
+  "validation_timestamp": "C:\\MyVS\\AIOps\\core_app\\rag",
+  "pdf_path": "data/sb-crem.pdf"
+}

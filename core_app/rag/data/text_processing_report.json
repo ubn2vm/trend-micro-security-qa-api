@@ -1,0 +1,19 @@
+{
+  "input_file": "data/extracted_text.txt",
+  "cleaned_text_length": 7619,
+  "chunks_count": 19,
+  "validation": {
+    "quality_score": 100,
+    "total_chunks": 19,
+    "total_length": 7788,
+    "average_length": 409.89473684210526,
+    "technical_terms_count": 49,
+    "size_distribution": {
+      "small": 1,
+      "medium": 18,
+      "large": 0
+    },
+    "issues": []
+  },
+  "processing_timestamp": "C:\\MyVS\\AIOps\\core_app\\rag"
+}

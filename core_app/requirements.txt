@@ -16,6 +16,7 @@ python-dotenv
 
 # 文本處理
 tiktoken
+pdfplumber
 
 # 日誌和工具
 python-multipart

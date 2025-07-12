@@ -5,11 +5,12 @@ from dotenv import load_dotenv
 
 # LangChain 相關導入
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.schema import Document
+from langchain.prompts import PromptTemplate
 
 # 設定日誌
 logging.basicConfig(
@@ -21,6 +22,35 @@ logger = logging.getLogger(__name__)
 class TrendMicroQASystem:
     """趨勢科技資安報告智能問答系統"""
     
+    # CREM 專業 Prompt 模板
+    CREM_PROMPT_TEMPLATE = """
+你是一個趨勢科技 CREM (Cyber Risk Exposure Management) 技術專家。
+
+基於以下 CREM 技術文檔內容，回答用戶的問題：
+
+{context}
+
+用戶問題: {question}
+
+請提供專業、準確的回答，重點說明：
+1. CREM 技術原理
+2. 實際應用場景
+3. 與 AI/ML 的整合
+4. 風險管理價值
+
+回答要求：
+- 使用專業術語 (CREM, CRI, Cyber Risk Index, 網路風險暴露管理)
+- 提供具體技術細節
+- 結合實際案例
+- 突出 AI 技術應用
+- 強調趨勢科技的技術優勢
+
+如果問題涉及具體數據或指標，請提供準確的數值。
+如果問題超出文檔範圍，請誠實說明並建議相關資源。
+
+回答：
+"""
+
     def __init__(self, knowledge_file: str = None):
         """
         初始化問答系統
@@ -131,20 +161,29 @@ class TrendMicroQASystem:
         return documents
     
     def _create_vector_store(self, documents: List[Document]):
-        """建立向量資料庫"""
+        """建立向量資料庫（優先使用 RAG 向量庫）"""
         try:
-            # 使用本地嵌入模型（避免 API 調用成本）
+            # 優先嘗試載入已建立的 RAG 向量資料庫
+            rag_vector_dir = os.path.join(os.path.dirname(__file__), "rag", "vector_store", "crem_faiss_index")
+            if os.path.exists(rag_vector_dir):
+                logger.info("發現已建立的 RAG 向量資料庫，嘗試載入...")
+                self.embeddings = HuggingFaceEmbeddings(
+                    model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+                    model_kwargs={'device': 'cpu'}
+                )
+                self.vector_store = FAISS.load_local(rag_vector_dir, self.embeddings, allow_dangerous_deserialization=True)
+                logger.info("成功載入 CREM RAG 向量資料庫")
+                return
+            # 若找不到則 fallback
+            logger.info("未發現 RAG 向量資料庫，使用傳統方式建立...")
             self.embeddings = HuggingFaceEmbeddings(
                 model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
                 model_kwargs={'device': 'cpu'}
             )
-            
-            # 建立 FAISS 向量資料庫
             self.vector_store = FAISS.from_documents(documents, self.embeddings)
             logger.info("向量資料庫建立成功")
-            
         except Exception as e:
-            logger.error(f"建立向量資料庫時發生錯誤: {str(e)}")
+            logger.error(f"建立或載入向量資料庫時發生錯誤: {str(e)}")
             raise
     
     def _create_qa_chain(self):
@@ -163,31 +202,34 @@ class TrendMicroQASystem:
                 temperature=temperature,
                 max_output_tokens=max_tokens
             )
+            
+            # 建立專業的 CREM Prompt 模板
+            prompt = PromptTemplate(
+                template=self.CREM_PROMPT_TEMPLATE,
+                input_variables=["context", "question"]
+            )
+            
+            # 建立問答鏈，使用自定義 Prompt
             self.qa_chain = RetrievalQA.from_chain_type(
                 llm=llm,
                 chain_type="stuff",
                 retriever=self.vector_store.as_retriever(
                     search_kwargs={"k": 3}
                 ),
-                return_source_documents=True
+                return_source_documents=True,
+                chain_type_kwargs={"prompt": prompt}
             )
-            logger.info("問答鏈建立成功")
+            logger.info("CREM 專業問答鏈建立成功")
         except Exception as e:
             logger.error(f"建立問答鏈時發生錯誤: {str(e)}")
             raise
     
     def _initialize_system(self):
-        """初始化整個系統"""
+        """初始化整個系統（使用 RAG 向量庫）"""
         logger.info("開始初始化趨勢科技資安問答系統...")
         
-        # 載入知識庫
-        knowledge_text = self._load_knowledge_base()
-        
-        # 分割文本
-        documents = self._split_text(knowledge_text)
-        
-        # 建立向量資料庫
-        self._create_vector_store(documents)
+        # 直接建立向量資料庫（會優先載入 RAG 向量庫）
+        self._create_vector_store([])  # 傳入空列表，因為會直接載入 RAG 向量庫
         
         # 建立問答鏈
         self._create_qa_chain()
@@ -208,7 +250,7 @@ class TrendMicroQASystem:
             logger.info(f"收到問題: {question}")
             
             # 執行問答
-            result = self.qa_chain({"query": question})
+            result = self.qa_chain.invoke({"query": question})
             
             # 提取答案和來源
             answer = result.get("result", "無法找到答案")
