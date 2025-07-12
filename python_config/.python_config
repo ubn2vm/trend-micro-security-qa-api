@@ -1,5 +1,0 @@
-# Python 配置檔案 - 使用絕對路徑
-PYTHON_EXE=C:\Python313\python.exe
-PIP_EXE=C:\Python313\Scripts\pip.exe
-PYTHON_DIR=C:\Python313
-PYTHON_SCRIPTS=C:\Python313\Scripts 

@@ -324,6 +324,7 @@ config_local.py
 .dockerignore
 docker-compose.override.yml
 
-# 專案狀態追蹤 (已轉換為 .gitignore)
+# 開發筆記
 PROJECT_STATUS.md 
 RAG_DEVELOPMENT_PLAN.md
+TESTS.md

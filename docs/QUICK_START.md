@@ -152,13 +152,13 @@ docker-compose logs -f
 ### Quick Test Scripts
 ```bash
 # Automated comprehensive testing
-testing_tools\quick_test.bat
+tests\scripts\quick_test.bat
 
 # Project validation
-testing_tools\validate_project.bat
+tests\scripts\validate_project.bat
 
 # Security testing
-python testing_tools\test_security.py
+python tests\security\test_security.py
 ```
 
 ### Manual API Testing
@@ -175,9 +175,14 @@ curl -X POST "http://localhost:8000/ask" \
 ### Comprehensive Testing
 ```bash
 # Run all test suites
-python tests/test_comprehensive.py
-python tests/test_summary.py
-python tests/test_gemini_only.py
+cd tests
+python -m pytest
+
+# Run specific test types
+python -m pytest unit/        # Unit tests
+python -m pytest integration/ # Integration tests
+python -m pytest performance/ # Performance tests
+python -m pytest security/    # Security tests
 ```
 
 ## Troubleshooting

@@ -97,20 +97,34 @@ if not exist "config\config.env" (
     echo   - Configuration file exists
 )
 
-REM 修復：先檢查 .env 檔案，如果不存在則執行 setup_env.bat
+REM 改進：檢查 .env 檔案，如果不存在則手動建立
 if not exist ".env" (
-    echo [INFO] .env file not found, running setup_env.bat...
-    if exist "setup_env.bat" (
-        call setup_env.bat
-        REM 再次檢查 .env 是否已建立
-        if not exist ".env" (
-            echo [ERROR] .env file still not found after running setup_env.bat
-            echo Please manually create .env file with your Google API Key
+    echo [INFO] .env file not found, creating from template...
+    if exist "config\env.example" (
+        copy config\env.example .env >nul
+        if errorlevel 1 (
+            echo [ERROR] Failed to copy config\env.example to .env
             pause
             exit /b 1
         )
+        echo [SUCCESS] .env file created from template
+        echo.
+        echo [IMPORTANT] Please edit .env file and set your Google API Key
+        echo.
+        echo Steps to get Google API Key:
+        echo 1. Go to https://makersuite.google.com/app/apikey
+        echo 2. Create a new API key
+        echo 3. Copy the key (starts with 'AI')
+        echo 4. Edit .env file and replace 'your_google_api_key_here' with your key
+        echo.
+        echo Opening .env file for editing...
+        notepad .env
+        echo.
+        echo [INFO] After editing .env file, press any key to continue...
+        pause
+        echo [INFO] Continuing with API Key validation...
     ) else (
-        echo [ERROR] setup_env.bat file not found
+        echo [ERROR] config\env.example file not found
         echo Please manually create .env file with your Google API Key
         pause
         exit /b 1
@@ -119,7 +133,7 @@ if not exist ".env" (
     echo   - API Key file exists
 )
 
-REM 修復：在虛擬環境中驗證 API Key（確保 python-dotenv 已安裝）
+REM 改進：在虛擬環境中驗證 API Key（更健壯的驗證）
 echo   - Validating API Key...
 call aiops\Scripts\activate.bat
 python -c "import os; from dotenv import load_dotenv; load_dotenv('config\config.env'); load_dotenv('.env'); api_key=os.getenv('GOOGLE_API_KEY'); exit(0 if api_key and len(api_key) >= 20 and api_key.startswith('AI') else 1)" 2>nul
@@ -130,30 +144,46 @@ if errorlevel 1 (
     echo - Key starts with 'AI'
     echo - Key is at least 20 characters long
     echo.
-    echo Opening .env file for editing...
-    notepad .env
-    pause
-    exit /b 1
-)
-echo   - API Key validation passed
-
-echo   - Checking knowledge base files...
-set "KNOWLEDGE_FILE=%KNOWLEDGE_FILE%"
-if "%KNOWLEDGE_FILE%"=="" set "KNOWLEDGE_FILE=summary.txt"
-
-if not exist "%KNOWLEDGE_FILE%" (
-    if exist "core_app\knowledgebase.txt" (
-        echo   - Creating %KNOWLEDGE_FILE% from knowledgebase.txt...
-        copy core_app\knowledgebase.txt %KNOWLEDGE_FILE%
-        echo   - Knowledge base file created
+    echo Current .env content:
+    type .env
+    echo.
+    echo Do you want to edit the .env file now? (Y/N)
+    set /p edit_choice=
+    if /i "%edit_choice%"=="Y" (
+        echo Opening .env file for editing...
+        notepad .env
+        echo.
+        echo [INFO] After editing, press any key to retry validation...
+        pause
+        echo [INFO] Retrying API Key validation...
+        python -c "import os; from dotenv import load_dotenv; load_dotenv('config\config.env'); load_dotenv('.env'); api_key=os.getenv('GOOGLE_API_KEY'); exit(0 if api_key and len(api_key) >= 20 and api_key.startswith('AI') else 1)" 2>nul
+        if errorlevel 1 (
+            echo [ERROR] API Key validation still failed
+            echo Please ensure you have a valid Google API Key
+            pause
+            exit /b 1
+        )
     ) else (
-        echo [ERROR] Knowledge base file not found
-        echo Please ensure core_app\knowledgebase.txt exists
+        echo [ERROR] API Key validation failed
+        echo Please manually fix the .env file and run start.bat again
         pause
         exit /b 1
     )
+)
+echo   - API Key validation passed
+
+echo   - Checking RAG knowledge base...
+set "RAG_VECTOR_DIR=%RAG_VECTOR_DIR%"
+if "%RAG_VECTOR_DIR%"=="" set "RAG_VECTOR_DIR=core_app\rag\vector_store\crem_faiss_index"
+
+if not exist "%RAG_VECTOR_DIR%" (
+    echo [ERROR] RAG vector database not found: %RAG_VECTOR_DIR%
+    echo Please ensure the RAG vector database exists
+    echo You may need to run RAG processing first
+    pause
+    exit /b 1
 ) else (
-    echo   - Knowledge base file exists
+    echo   - RAG vector database exists: %RAG_VECTOR_DIR%
 )
 echo   - Checking port availability...
 netstat -an | findstr ":8000" >nul 2>&1
@@ -183,9 +213,9 @@ echo.
 echo Press Ctrl+C to stop the server
 echo.
 
-REM 確保在虛擬環境中啟動 API - 修復：直接執行 app.py
+REM 確保在虛擬環境中啟動 API - 修復：使用模組方式執行
 call aiops\Scripts\activate.bat
-python core_app\app.py
+python -m core_app.app
 if errorlevel 1 (
     echo.
     echo [ERROR] Failed to start API server

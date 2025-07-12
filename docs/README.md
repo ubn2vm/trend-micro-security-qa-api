@@ -11,49 +11,59 @@ Build a fast, verifiable local prototype to demonstrate core AI engineering and 
 ```
 AIOps/
 ├── core_app/                # Main AI service and knowledge base
-│   ├── app.py
-│   ├── main.py
-│   ├── requirements.txt
-│   ├── knowledgebase.txt
-│   ├── summary.txt
-│   └── gradio_app.py
+│   ├── __init__.py          # Package initialization
+│   ├── app.py              # FastAPI application
+│   ├── main.py             # Core AI Q&A system
+│   ├── gradio_app.py       # Gradio frontend interface
+│   ├── requirements.txt    # Dependencies list
+│   └── rag/                # RAG system core
+│       ├── __init__.py         # RAG package initialization
+│       ├── pdf_processor.py    # PDF processing module
+│       ├── text_processor.py   # Text processing module
+│       ├── crem_knowledge.py   # Knowledge base module
+│       ├── data/               # Raw data and processed results
+│       │   ├── sb-crem.pdf           # CREM technical document
+│       │   ├── extracted_text.txt    # Extracted raw text
+│       │   ├── cleaned_text.txt      # Cleaned text
+│       │   ├── text_chunks.json     # Chunked text
+│       │   ├── text_processing_report.json  # Processing report
+│       │   └── validation_report.json       # Validation report
+│       └── vector_store/           # Vector database
+│           └── crem_faiss_index/   # FAISS vector index
 │
 ├── start.bat                # Main startup script
 ├── setup_env.bat            # Environment setup script
-├── start_api_enhanced.bat   # Enhanced startup script
 │
-├── testing_tools/           # Project validation and test scripts
-│   ├── quick_test.bat
-│   ├── validate_project.py
-│   ├── validate_project.bat
-│   └── test_security.py
+├── tests/                   # Unified testing framework
+│   ├── __init__.py          # Test package initialization
+│   ├── README.md            # Test documentation
+│   ├── pytest.ini          # pytest configuration
+│   ├── unit/                # Unit tests
+│   ├── integration/         # Integration tests
+│   ├── performance/         # Performance tests
+│   ├── security/            # Security tests
+│   ├── utils/               # Test utilities
+│   └── scripts/             # Test scripts
 │
-├── docs/                    # Documentation
-│   ├── README.md
-│   ├── PROJECT_STATUS.md
-│   ├── QUICK_START.md
-│   └── docker.md
+├── docs/                    # Project documentation
+│   ├── README.md            # Project overview
+│   └── Quick_Start.md       # Quick start guide
 │
 ├── containerization/        # Docker settings
-│   ├── Dockerfile
-│   ├── docker-compose.yml
-│   └── .dockerignore
+│   ├── Dockerfile           # Container configuration
+│   ├── docker-compose.yml   # Docker Compose orchestration
+│   └── .dockerignore        # Docker ignore file
 │
 ├── config/                  # Environment variables and app config
-│   ├── env.example
-│   └── config.env
+│   ├── env.example          # Environment variables template
+│   └── config.env           # Actual environment configuration
 │
-├── tests/                   # Automated test scripts
-│   ├── test_comprehensive.py
-│   ├── test_summary.py
-│   └── test_gemini_only.py
-│
-├── python_config/           # Python config
-├── examples/                # Example files
 ├── aiops/                   # Python virtual environment
 ├── .vscode/                 # VS Code settings
-├── .gitignore
-└── .git/
+├── TESTS.md                 # Testing framework documentation
+├── RAG_DEVELOPMENT_PLAN.md # RAG development plan
+├── .gitignore              # Git ignore file
+└── .git/                   # Git version control
 ```
 
 ---
@@ -63,13 +73,15 @@ AIOps/
 ```mermaid
 flowchart TD
     A[Startup Script / Container] --> B[FastAPI Launch]
-    B --> C[Load Knowledgebase summary.txt]
-    C --> D[Text Embedding]
-    D --> E[FAISS Vector Store]
-    E --> F[Gemini LLM QA Chain]
-    F --> G[API Endpoint /ask]
-    G --> H[Gradio Frontend]
-    G --> I[Swagger UI Test]
+    B --> C[Load RAG Knowledge Base]
+    C --> D[PDF Processing & Text Extraction]
+    D --> E[Text Cleaning & Chunking]
+    E --> F[Vector Embedding]
+    F --> G[FAISS Vector Store]
+    G --> H[Gemini LLM QA Chain]
+    H --> I[API Endpoint /ask]
+    I --> J[Gradio Frontend]
+    I --> K[Swagger UI Test]
 ```
 
 ---
@@ -98,7 +110,7 @@ flowchart TD
 - **Gradio Frontend**:
   - Run `python core_app/gradio_app.py` to launch the local web interface
 - **For detailed steps and troubleshooting**:
-  - See [docs/QUICK_START.md](QUICK_START.md) and [docs/docker.md](docker.md)
+  - See [docs/Quick_Start.md](Quick_Start.md)
 
 ---
 

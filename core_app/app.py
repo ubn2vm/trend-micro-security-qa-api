@@ -11,7 +11,8 @@ load_dotenv('../config/config.env')
 load_dotenv('../.env')
 
 # 導入我們的問答系統
-from main import TrendMicroQASystem
+## 使用絕對導入，確保在各種執行環境下都能正常工作
+from core_app.main import TrendMicroQASystem
 
 # 設定日誌
 logging.basicConfig(
@@ -84,8 +85,7 @@ def get_qa_system() -> TrendMicroQASystem:
     global qa_system
     if qa_system is None:
         try:
-            knowledge_file = os.getenv("KNOWLEDGE_FILE", os.path.join(os.path.dirname(__file__), "summary.txt"))
-            qa_system = TrendMicroQASystem(knowledge_file=knowledge_file)
+            qa_system = TrendMicroQASystem()
             logger.info("問答系統初始化成功")
         except Exception as e:
             logger.error(f"問答系統初始化失敗: {str(e)}")
@@ -143,15 +143,14 @@ async def health_check():
         environment["temperature"] = temperature
         environment["max_tokens"] = max_tokens
         
-        # 檢查知識庫檔案
-        knowledge_file = os.getenv("KNOWLEDGE_FILE", "summary.txt")
-        if os.path.exists(knowledge_file):
-            file_size = os.path.getsize(knowledge_file)
-            environment["knowledge_file"] = f"{knowledge_file} ({file_size} bytes)"
-            components["knowledge_base"] = "healthy"
+        # 檢查 RAG 向量資料庫
+        rag_vector_dir = os.getenv("RAG_VECTOR_DIR", "core_app/rag/vector_store/crem_faiss_index")
+        if os.path.exists(rag_vector_dir):
+            environment["rag_vector_dir"] = f"{rag_vector_dir} (Exists)"
+            components["rag_vector_store"] = "healthy"
         else:
-            environment["knowledge_file"] = f"{knowledge_file} (File not found)"
-            components["knowledge_base"] = "error"
+            environment["rag_vector_dir"] = f"{rag_vector_dir} (Not found)"
+            components["rag_vector_store"] = "error"
         
         # 檢查問答系統
         try:

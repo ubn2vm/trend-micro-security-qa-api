@@ -20,7 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class TrendMicroQASystem:
-    """趨勢科技資安報告智能問答系統"""
+    """趨勢科技資安報告智能問答系統（RAG 模式）"""
     
     # CREM 專業 Prompt 模板
     CREM_PROMPT_TEMPLATE = """
@@ -51,22 +51,9 @@ class TrendMicroQASystem:
 回答：
 """
 
-    def __init__(self, knowledge_file: str = None):
-        """
-        初始化問答系統
-        
-        Args:
-            knowledge_file: 知識庫檔案路徑，如果為 None 則使用環境變數 KNOWLEDGE_FILE
-        """
-        # 如果沒有指定檔案，使用環境變數
-        if knowledge_file is None:
-            knowledge_file = os.getenv("KNOWLEDGE_FILE", "summary.txt")
-        self.knowledge_file = knowledge_file
-        self.vector_store = None
-        self.qa_chain = None
-        self.embeddings = None
-        
-        # 載入環境變數 - 先載入 config.env，再載入 .env（API Key）
+    def __init__(self):
+        """初始化問答系統（RAG 模式）"""
+        # 載入環境變數
         load_dotenv('../config/config.env')
         load_dotenv('../.env')
         
@@ -135,55 +122,27 @@ class TrendMicroQASystem:
             logger.error(f"[配置錯誤] 最大 Token 數 '{max_tokens}' 不是有效整數")
             raise ValueError("GEMINI_MAX_TOKENS 必須是有效整數")
     
-    def _load_knowledge_base(self) -> str:
-        """載入知識庫檔案"""
+    def _create_vector_store(self):
+        """載入 RAG 向量資料庫"""
         try:
-            with open(self.knowledge_file, 'r', encoding='utf-8') as file:
-                content = file.read()
-            logger.info(f"成功載入知識庫檔案: {self.knowledge_file}")
-            return content
-        except FileNotFoundError:
-            raise FileNotFoundError(f"找不到知識庫檔案: {self.knowledge_file}")
-        except Exception as e:
-            raise Exception(f"載入知識庫檔案時發生錯誤: {str(e)}")
-    
-    def _split_text(self, text: str) -> List[Document]:
-        """將文本分割成適合向量化的片段"""
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
-            length_function=len,
-            separators=["\n\n", "\n", "。", "！", "？", "；", "，", " ", ""]
-        )
-        
-        documents = text_splitter.create_documents([text])
-        logger.info(f"文本已分割成 {len(documents)} 個片段")
-        return documents
-    
-    def _create_vector_store(self, documents: List[Document]):
-        """建立向量資料庫（優先使用 RAG 向量庫）"""
-        try:
-            # 優先嘗試載入已建立的 RAG 向量資料庫
-            rag_vector_dir = os.path.join(os.path.dirname(__file__), "rag", "vector_store", "crem_faiss_index")
-            if os.path.exists(rag_vector_dir):
-                logger.info("發現已建立的 RAG 向量資料庫，嘗試載入...")
-                self.embeddings = HuggingFaceEmbeddings(
-                    model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-                    model_kwargs={'device': 'cpu'}
-                )
-                self.vector_store = FAISS.load_local(rag_vector_dir, self.embeddings, allow_dangerous_deserialization=True)
-                logger.info("成功載入 CREM RAG 向量資料庫")
-                return
-            # 若找不到則 fallback
-            logger.info("未發現 RAG 向量資料庫，使用傳統方式建立...")
+            rag_vector_dir = os.getenv("RAG_VECTOR_DIR", 
+                os.path.join(os.path.dirname(__file__), "rag", "vector_store", "crem_faiss_index"))
+            
+            if not os.path.exists(rag_vector_dir):
+                raise FileNotFoundError(f"RAG 向量資料庫不存在: {rag_vector_dir}")
+            
+            logger.info("載入 RAG 向量資料庫...")
+            embedding_model = os.getenv("RAG_EMBEDDING_MODEL", 
+                "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
             self.embeddings = HuggingFaceEmbeddings(
-                model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+                model_name=embedding_model,
                 model_kwargs={'device': 'cpu'}
             )
-            self.vector_store = FAISS.from_documents(documents, self.embeddings)
-            logger.info("向量資料庫建立成功")
+            self.vector_store = FAISS.load_local(rag_vector_dir, self.embeddings, allow_dangerous_deserialization=True)
+            logger.info("成功載入 CREM RAG 向量資料庫")
+            
         except Exception as e:
-            logger.error(f"建立或載入向量資料庫時發生錯誤: {str(e)}")
+            logger.error(f"載入向量資料庫時發生錯誤: {str(e)}")
             raise
     
     def _create_qa_chain(self):
@@ -225,11 +184,11 @@ class TrendMicroQASystem:
             raise
     
     def _initialize_system(self):
-        """初始化整個系統（使用 RAG 向量庫）"""
-        logger.info("開始初始化趨勢科技資安問答系統...")
+        """初始化整個系統"""
+        logger.info("開始初始化趨勢科技資安問答系統（RAG 模式）...")
         
-        # 直接建立向量資料庫（會優先載入 RAG 向量庫）
-        self._create_vector_store([])  # 傳入空列表，因為會直接載入 RAG 向量庫
+        # 載入向量資料庫
+        self._create_vector_store()
         
         # 建立問答鏈
         self._create_qa_chain()

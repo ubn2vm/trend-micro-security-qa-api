@@ -7,20 +7,20 @@ services:
       - "8000:8000"
     environment:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-pro}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash-lite}
       - GEMINI_TEMPERATURE=${GEMINI_TEMPERATURE:-0.1}
-      - GEMINI_MAX_TOKENS=${GEMINI_MAX_TOKENS:-500}
+      - GEMINI_MAX_TOKENS=${GEMINI_MAX_TOKENS:-200}
       - API_HOST=0.0.0.0
       - API_PORT=8000
-      - KNOWLEDGE_FILE=${KNOWLEDGE_FILE:-summary.txt}
+      - RAG_VECTOR_DIR=${RAG_VECTOR_DIR:-core_app/rag/vector_store/crem_faiss_index}
+      - RAG_EMBEDDING_MODEL=${RAG_EMBEDDING_MODEL:-sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     volumes:
-      - ./summary.txt:/app/summary.txt:ro
-      - ./knowledgebase.txt:/app/knowledgebase.txt:ro
+      - ./core_app/rag/vector_store:/app/core_app/rag/vector_store:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s 
+      start_period: 40s

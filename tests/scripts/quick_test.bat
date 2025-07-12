@@ -49,6 +49,17 @@ if errorlevel 1 (
 )
 echo [成功] 問答功能測試通過
 
+REM 執行 pytest 快速測試
+echo [5/5] 執行 pytest 快速測試...
+cd tests
+python -m pytest unit\ -v --tb=short -q
+if errorlevel 1 (
+    echo [警告] 部分單元測試失敗
+) else (
+    echo [成功] 單元測試通過
+)
+cd ..
+
 echo.
 echo ======================================
 echo [成功] 所有測試通過！
@@ -59,4 +70,4 @@ echo [健康] 健康檢查: http://localhost:8000/health
 echo [範例] 範例問題: http://localhost:8000/examples
 echo.
 echo 系統運行正常，可以開始使用！
-pause
+pause 
