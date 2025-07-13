@@ -9,8 +9,8 @@ echo [INFO] 正在準備演示環境...
 echo.
 
 REM 檢查必要檔案
-if not exist "start.bat" (
-    echo [ERROR] start.bat 不存在
+if not exist "Dev\dev_scripts\start.bat" (
+    echo [ERROR] Dev\dev_scripts\start.bat 不存在
     echo 請確保在專案根目錄執行此腳本
     pause
     exit /b 1

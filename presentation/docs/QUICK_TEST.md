@@ -1,4 +1,4 @@
-# ⚡ 快速測試指南（面試官專用）
+# ⚡ 快速測試指南
 
 ## 🎯 測試目標
 在 5 分鐘內完成系統啟動和功能驗證
@@ -12,7 +12,7 @@
 - [ ] 瀏覽器已開啟
 
 ### ✅ 系統啟動
-- [ ] 執行 `start.bat`
+- [ ] 執行 `Dev/dev_scripts/start.bat`
 - [ ] API 服務啟動成功
 - [ ] 聊天介面啟動成功
 - [ ] 無錯誤訊息
@@ -51,8 +51,8 @@ python core_app/gradio_app.py
 ### 步驟 3：測試功能
 1. **開啟健康檢查**：http://localhost:8000/health
 2. **開啟聊天介面**：http://127.0.0.1:7860
-3. **測試建議問題**：點擊 "什麼是 CRI？"
-4. **測試自定義問題**：輸入 "2025年主要資安威脅有哪些？"
+3. **測試建議問題**：點擊 "什麼是 CREM？它主要解決什麼問題？"
+4. **測試自定義問題**：輸入 "CREM 相比傳統安全方案有什麼主要優勢？"
 
 
 ## 📝 預期答案範例
@@ -67,8 +67,8 @@ python core_app/gradio_app.py
 
 ### 進階問題答案
 
-#### "請詳細說明 CREM 的完整生命週期包含哪些步驟？"
-**預期答案**：CREM 生命週期包含：
+#### "請詳細說明 CREM 的週期包含哪些步驟？"
+**預期答案**：CREM 週期包含：
 - **Discover（發現）**：使用即時發現和基於風險的漏洞管理來發現環境中的每個資產
 - **Predict（預測）**：使用高級威脅情報預測攻擊
 - **Prioritize（優先級）**：使用上下文驅動的風險評分快速確定最重要的項目
@@ -103,7 +103,7 @@ python core_app/gradio_app.py
 # 編輯 .env 檔案
 notepad .env
 # 設定：GOOGLE_API_KEY=your_actual_key
-# 重新執行 start.bat
+# 重新執行 Dev/dev_scripts/start.bat
 ```
 
 ### 問題 2：端口被佔用
@@ -137,7 +137,7 @@ pip install -r core_app/requirements.txt
 - **故障排除**：1 分鐘
 
 ### 關鍵時間點
-- 0:00 - 開始執行 start.bat
+- 0:00 - 開始執行 Dev/dev_scripts/start.bat
 - 0:30 - API 服務啟動完成
 - 1:00 - 聊天介面啟動完成
 - 2:00 - 基礎功能測試完成
@@ -165,7 +165,7 @@ pip install -r core_app/requirements.txt
 ### 快速修復
 如果遇到問題，可以：
 1. 重新啟動命令提示字元
-2. 重新執行 start.bat
+2. 重新執行 Dev/dev_scripts/start.bat
 3. 檢查網路連線
 4. 確認 API Key 設定
 
