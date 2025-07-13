@@ -6,28 +6,67 @@ echo Trend Micro Security QA API - Simple Start
 echo ===========================================
 echo.
 
-REM 檢查 Python
+REM 自動偵測 Python 指令
 echo ===========================================
-echo [Python Environment Check]
+echo [Python Environment Detection]
 echo ===========================================
-echo   - Checking system Python...
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo [ERROR] Python not found. Please install Python 3.8+
-    echo Download from: https://www.python.org/downloads/
-    pause
-    exit /b 1
-)
-echo [SUCCESS] Using system Python
+echo   - Detecting Python installation...
 
+REM 設定預設的 Python 指令
+set "PYTHON_CMD="
+set "PIP_CMD="
+
+REM 依優先順序檢查 Python 指令
+echo   - Checking 'python' command...
+python --version >nul 2>&1
+if not errorlevel 1 (
+    set "PYTHON_CMD=python"
+    set "PIP_CMD=pip"
+    for /f "tokens=*" %%i in ('python --version 2^>nul') do (
+        echo [SUCCESS] Found: %%i
+    )
+    goto :python_found
+)
+
+echo   - Checking 'py' command...
+py --version >nul 2>&1
+if not errorlevel 1 (
+    set "PYTHON_CMD=py"
+    set "PIP_CMD=py -m pip"
+    for /f "tokens=*" %%i in ('py --version 2^>nul') do (
+        echo [SUCCESS] Found: %%i
+    )
+    goto :python_found
+)
+
+echo   - Checking 'python3' command...
+python3 --version >nul 2>&1
+if not errorlevel 1 (
+    set "PYTHON_CMD=python3"
+    set "PIP_CMD=pip3"
+    for /f "tokens=*" %%i in ('python3 --version 2^>nul') do (
+        echo [SUCCESS] Found: %%i
+    )
+    goto :python_found
+)
+
+echo [ERROR] No Python installation found
+echo Please install Python 3.8+ manually from https://www.python.org/downloads/
+pause
+exit /b 1
+
+:python_found
+echo [SUCCESS] Using Python command: %PYTHON_CMD%
+echo [SUCCESS] Using pip command: %PIP_CMD%
 echo.
+
 echo ===========================================
 echo [Virtual Environment Setup]
 echo ===========================================
 echo   - Checking virtual environment...
 if not exist "aiops\Scripts\activate.bat" (
     echo   - Creating virtual environment...
-    python -m venv aiops
+    %PYTHON_CMD% -m venv aiops
     if errorlevel 1 (
         echo [ERROR] Failed to create virtual environment
         pause
@@ -37,6 +76,7 @@ if not exist "aiops\Scripts\activate.bat" (
 ) else (
     echo   - Virtual environment exists
 )
+
 echo   - Activating virtual environment...
 call aiops\Scripts\activate.bat
 if errorlevel 1 (
@@ -72,20 +112,13 @@ if not exist "config\config.env" (
     echo   - Configuration file exists
 )
 
-REM 簡化的 .env 檢查
+REM 修正的 .env 檢查和建立
 if not exist ".env" (
     echo [INFO] .env file not found, creating from template...
     if exist "config\env.example" (
         copy config\env.example .env >nul
         echo [SUCCESS] .env file created
-        echo.
-        echo [IMPORTANT] 請貼上您的 Google API Key：
-        set /p USER_API_KEY=請貼上 GOOGLE_API_KEY 並按 Enter：
-        echo GOOGLE_API_KEY=%USER_API_KEY%>>.env
-        echo.
-        echo [INFO] 已將 API Key 寫入 .env 檔案
-        echo [INFO] 若要修改，請直接編輯 .env 檔案
-        pause
+        goto :get_api_key
     ) else (
         echo [ERROR] config\env.example file not found
         pause
@@ -95,33 +128,53 @@ if not exist ".env" (
     echo   - API Key file exists
 )
 
-REM 簡化的 API Key 驗證
-echo   - Validating API Key...
+REM 檢查 .env 檔案中是否有有效的 API Key
 call aiops\Scripts\activate.bat
-python -c "import os; from dotenv import load_dotenv; load_dotenv('config\\config.env'); load_dotenv('.env'); api_key=os.getenv('GOOGLE_API_KEY'); exit(0 if api_key and len(api_key) >= 20 and api_key.startswith('AI') else 1)" 2>nul
+python -c "import os; from dotenv import load_dotenv; load_dotenv('.env'); api_key=os.getenv('GOOGLE_API_KEY'); exit(0 if api_key and len(api_key) > 20 and api_key.startswith('AI') else 1)" 2>nul
 if errorlevel 1 (
-    echo [ERROR] Invalid or missing Google API Key
-    echo 請重新貼上您的 Google API Key：
-    set /p USER_API_KEY=請貼上 GOOGLE_API_KEY 並按 Enter：
-    (for /f "delims=" %%i in ('findstr /v "^GOOGLE_API_KEY=" .env') do @echo %%i)>.env.tmp
-    move /y .env.tmp .env >nul
-    echo GOOGLE_API_KEY=%USER_API_KEY%>>.env
-    echo [INFO] 已更新 .env 檔案
-    echo [INFO] 重新驗證 API Key...
-    python -c "import os; from dotenv import load_dotenv; load_dotenv('config\\config.env'); load_dotenv('.env'); api_key=os.getenv('GOOGLE_API_KEY'); exit(0 if api_key and len(api_key) >= 20 and api_key.startswith('AI') else 1)" 2>nul
-    if errorlevel 1 (
-        echo [ERROR] API Key validation failed
-        echo 請確認您貼上的 Google API Key 正確無誤
-        pause
-        exit /b 1
-    )
+    echo [WARNING] Invalid or missing API Key in .env file
+    goto :get_api_key
+) else (
+    echo   - API Key validation passed
+    goto :continue_setup
 )
-echo   - API Key validation passed
 
+:get_api_key
+echo.
+echo [IMPORTANT] Please enter your Google API Key:
+echo Format example: AIzaSyC... (starts with AI)
+echo.
+set /p USER_API_KEY="Enter GOOGLE_API_KEY: "
+
+REM 使用簡單的方法寫入 .env 檔案
+echo # Google API Key - 請替換為您的實際 API Key > .env
+echo # 前往 https://makersuite.google.com/app/apikey 取得 API Key >> .env
+echo GOOGLE_API_KEY=%USER_API_KEY% >> .env
+echo. >> .env
+echo # 其他設定會從 config.env 自動載入 >> .env
+
+echo.
+echo [INFO] API Key has been written to .env file
+echo [INFO] To modify, edit .env file directly
+
+REM 驗證 API Key 是否正確寫入
+echo   - Verifying API Key...
+call aiops\Scripts\activate.bat
+python -c "import os; from dotenv import load_dotenv; load_dotenv('.env'); api_key=os.getenv('GOOGLE_API_KEY'); print('API Key found:', 'Yes' if api_key else 'No'); print('Key length:', len(api_key) if api_key else 0); print('Key starts with AI:', 'Yes' if api_key and api_key.startswith('AI') else 'No')" 2>nul
+
+if errorlevel 1 (
+    echo [ERROR] Failed to write API Key to .env file
+    echo Please check file permissions and try again
+    pause
+    exit /b 1
+)
+
+echo [SUCCESS] API Key verification passed
+
+:continue_setup
 echo   - Checking RAG knowledge base...
 if not exist "core_app\rag\vector_store\crem_faiss_index" (
     echo [ERROR] RAG vector database not found
-    echo Please ensure the RAG vector database exists
     pause
     exit /b 1
 ) else (

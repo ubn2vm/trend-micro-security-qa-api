@@ -375,20 +375,20 @@ if __name__ == "__main__":
     input_path = "data/extracted_text.txt"
     output_dir = "data"
     
-    print("=== 文本清理與分塊測試 ===")
+    logger.info("=== 文本清理與分塊測試 ===")
     result = process_text_file(input_path, output_dir)
     
     if result["success"]:
-        print("✅ 處理成功")
-        print(f"📊 清理後文本長度: {result['cleaned_text_length']} 字符")
-        print(f"📦 分塊數量: {result['chunks_count']}")
-        print(f"📈 品質評估: {result['validation']}")
-        print(f"📝 分塊樣本:")
+        logger.info("✅ 處理成功")
+        logger.info(f"📊 清理後文本長度: {result['cleaned_text_length']} 字符")
+        logger.info(f"📦 分塊數量: {result['chunks_count']}")
+        logger.info(f"📈 品質評估: {result['validation']}")
+        logger.info(f"📝 分塊樣本:")
         for i, sample in enumerate(result['sample_chunks'], 1):
-            print(f"   塊 {i}: {sample}")
+            logger.info(f"   塊 {i}: {sample}")
         
         # 驗證標準檢查
-        print("\n=== 驗證標準檢查 ===")
+        logger.info("\n=== 驗證標準檢查 ===")
         validation = result['validation']
         
         checks = [
@@ -400,10 +400,10 @@ if __name__ == "__main__":
         
         for check_name, passed in checks:
             status = "✅" if passed else "❌"
-            print(f"{status} {check_name}")
+            logger.info(f"{status} {check_name}")
         
         all_passed = all(passed for _, passed in checks)
-        print(f"\n🎯 整體驗證結果: {'通過' if all_passed else '需要改進'}")
+        logger.info(f"\n🎯 整體驗證結果: {'通過' if all_passed else '需要改進'}")
         
     else:
-        print(f"❌ 處理失敗: {result['error']}") 
+        logger.error(f"❌ 處理失敗: {result['error']}") 

@@ -73,10 +73,10 @@ def build_and_save_knowledge_base():
     builder.build_vector_db()
     builder.save_vector_db()
     stats = builder.validate_vector_db()
-    print("=== 向量化與知識庫建立完成 ===")
-    print(f"向量數量: {stats['vector_count']}")
-    print(f"向量維度: {stats['vector_dim']}")
-    print(f"分塊數量: {stats['doc_count']}")
+    logger.info("=== 向量化與知識庫建立完成 ===")
+    logger.info(f"向量數量: {stats['vector_count']}")
+    logger.info(f"向量維度: {stats['vector_dim']}")
+    logger.info(f"分塊數量: {stats['doc_count']}")
 
 if __name__ == "__main__":
     build_and_save_knowledge_base() 

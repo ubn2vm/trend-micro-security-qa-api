@@ -9,7 +9,7 @@ echo [1/4] 檢查 API 服務狀態...
 curl -s http://localhost:8000/health >nul 2>&1
 if errorlevel 1 (
     echo [錯誤] API 服務未運行
-    echo 請執行: start.bat 或 start_api_enhanced.bat
+    echo 請執行: Dev/dev_scripts/start.bat 或 start_api_enhanced.bat
     pause
     exit /b 1
 )

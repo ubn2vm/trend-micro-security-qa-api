@@ -325,19 +325,19 @@ if __name__ == "__main__":
     pdf_path = "data/sb-crem.pdf"
     output_dir = "data"
     
-    print("=== PDF 文本提取綜合驗證 ===")
+    logger.info("=== PDF 文本提取綜合驗證 ===")
     result = comprehensive_validation(pdf_path, output_dir)
     
     if result["success"]:
-        print("✅ 提取成功")
-        print(f"📊 統計資訊: {result['extraction_stats']}")
-        print(f"📈 品質評估: {result['quality_assessment']}")
-        print(f"🔍 技術術語數量: {result['technical_terms_found']}")
-        print(f"⭐ 品質分數: {result['quality_score']}/100")
-        print(f"📝 文本樣本:\n{result['sample_text'][:500]}...")
+        logger.info("✅ 提取成功")
+        logger.info(f"📊 統計資訊: {result['extraction_stats']}")
+        logger.info(f"📈 品質評估: {result['quality_assessment']}")
+        logger.info(f"🔍 技術術語數量: {result['technical_terms_found']}")
+        logger.info(f"⭐ 品質分數: {result['quality_score']}/100")
+        logger.info(f"📝 文本樣本:\n{result['sample_text'][:500]}...")
         
         # 驗證標準檢查
-        print("\n=== 驗證標準檢查 ===")
+        logger.info("\n=== 驗證標準檢查 ===")
         stats = result['extraction_stats']
         quality = result['quality_assessment']
         
@@ -351,10 +351,10 @@ if __name__ == "__main__":
         
         for check_name, passed in checks:
             status = "✅" if passed else "❌"
-            print(f"{status} {check_name}")
+            logger.info(f"{status} {check_name}")
         
         all_passed = all(passed for _, passed in checks)
-        print(f"\n🎯 整體驗證結果: {'通過' if all_passed else '需要改進'}")
+        logger.info(f"\n🎯 整體驗證結果: {'通過' if all_passed else '需要改進'}")
         
     else:
-        print(f"❌ 提取失敗: {result['error']}") 
+        logger.error(f"❌ 提取失敗: {result['error']}") 

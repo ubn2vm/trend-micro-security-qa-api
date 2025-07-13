@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import gradio as gr
 import requests
 import threading
@@ -7,12 +8,10 @@ API_URL = "http://localhost:8000/ask"
 
 # 建議問題清單
 SUGGESTED_QUESTIONS = [
-    "什麼是 CRI？",
-    "2025年主要資安威脅有哪些？",
-    "如何防護勒索軟體攻擊？",
-    "雲端安全最佳實踐是什麼？",
-    "零信任架構的核心原則？",
-    "AI 在資安中的應用？"
+    "Trend Vision One CREM 解決方案的主要目標是什麼？",
+    "CREM 如何幫助安全團隊獲得更全面的風險視圖？",
+    "CREM 如何整合不同的安全領域？",
+    "CREM 如何利用「威脅情報」和「AI」來提供其宣稱的「無與倫比的風險情報優勢」？"
 ]
 
 # 儲存對話歷史
@@ -204,8 +203,8 @@ custom_css = """
 with gr.Blocks(css=custom_css, theme=gr.themes.Soft()) as demo:
     gr.HTML("""
         <div class="main-header">
-            <h1 style="color: #111;">趨勢科技資安報告智能問答</h1>
-            <p style="color: #222;">基於 AI 技術的資安情報分析平台</p>
+            <h1 style="color: #111;">趨勢科技CREM智能問答</h1>
+            <p style="color: #222;">基於 AI 技術的CREM產品資訊平台</p>
         </div>
     """)
     # 狀態：目前選中的建議問題 index
@@ -229,7 +228,7 @@ with gr.Blocks(css=custom_css, theme=gr.themes.Soft()) as demo:
         with gr.Row():
             gr.HTML('<div class="custom-label">請輸入您的資安問題</div>')
             msg = gr.Textbox(
-                placeholder="例如：什麼是CRI？",
+                placeholder="例如：什麼是CREM？",
                 lines=3,
                 scale=4,
                 container=True,
@@ -238,7 +237,7 @@ with gr.Blocks(css=custom_css, theme=gr.themes.Soft()) as demo:
             submit_btn = gr.Button("發送", variant="primary", scale=1, elem_classes=["gradio-button"])
         status_box = gr.HTML("", elem_classes=["status-box"])
         with gr.Row():
-            clear_btn = gr.Button("清除對話", variant="secondary", elem_classes=["clear-button"])
+            clear_btn = gr.Button("清除對話記錄", variant="secondary", elem_classes=["clear-button"])
             gr.HTML("<div style='text-align: center; color: #D71920; font-size: 12px; font-weight: bold; margin-top: 10px;'>Powered by Google Gemini API</div>")
     # 互動元件都定義好後，再掛事件
     def update_suggestion_btns(idx):

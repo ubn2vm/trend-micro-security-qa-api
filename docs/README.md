@@ -31,8 +31,8 @@ AIOps/
 │       └── vector_store/           # Vector database
 │           └── crem_faiss_index/   # FAISS vector index
 │
-├── start.bat                # Main startup script
-├── setup_env.bat            # Environment setup script
+├── Dev/dev_scripts/start.bat    # Main startup script
+├── Dev/dev_scripts/setup_env.bat # Environment setup script
 │
 ├── tests/                   # Unified testing framework
 │   ├── __init__.py          # Test package initialization
@@ -106,7 +106,7 @@ flowchart TD
 - **Docker Deployment**:
   - In the containerization/ directory, run `docker-compose up -d`
 - **Local Startup**:
-  - Run `start.bat` or `python core_app/app.py`
+  - Run `Dev/dev_scripts/start.bat` or `python core_app/app.py`
 - **Gradio Frontend**:
   - Run `python core_app/gradio_app.py` to launch the local web interface
 - **For detailed steps and troubleshooting**:

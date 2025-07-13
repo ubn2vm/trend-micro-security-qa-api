@@ -74,7 +74,7 @@ curl -s http://localhost:8000/health >nul 2>&1
 if errorlevel 1 (
     echo [警告] API 服務未運行
     echo 請先啟動 API 服務:
-    echo   start.bat
+    echo   Dev/dev_scripts/start.bat
     echo   or
     echo   start_api_enhanced.bat
     echo.

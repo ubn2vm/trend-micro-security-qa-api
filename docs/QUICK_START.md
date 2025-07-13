@@ -23,7 +23,7 @@ This guide provides step-by-step instructions for deploying the Trend Micro Secu
 ### Step 2: One-Click Launch
 ```bash
 # Execute the main startup script
-start.bat
+Dev/dev_scripts/start.bat
 ```
 
 **What happens automatically:**
@@ -62,7 +62,7 @@ Open your browser and visit:
 ### Step 1: Environment Setup
 ```bash
 # Run environment setup script
-setup_env.bat
+Dev/dev_scripts/setup_env.bat
 ```
 
 This script will:
@@ -210,7 +210,7 @@ pip install -r core_app\requirements.txt
 **Solution**:
 1. Check `.env` file exists
 2. Verify `GOOGLE_API_KEY` format (starts with 'AI', min 20 chars)
-3. Re-run `setup_env.bat` if needed
+3. Re-run `Dev/dev_scripts/setup_env.bat` if needed
 
 ### Port Already in Use
 **Symptom**: Port 8000 already in use
