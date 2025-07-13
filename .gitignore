@@ -40,3 +40,10 @@ htmlcov/
 *.bat
 !presentation/scripts/*.bat
 !tests/scripts/*.bat
+
+# personal demo files
+presentation/10_min_demo_practice.bat
+presentation/10_MIN_DEMO_SCRIPT.md
+presentation/10_MINUTE_INTERVIEW_FLOW.md
+presentation/BACKUP_VIDEO_SCRIPT.md
+presentation/DEMO_TODO.md
