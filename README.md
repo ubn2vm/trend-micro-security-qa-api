@@ -12,10 +12,10 @@ Transform hours of document hunting into seconds of intelligent answers with our
 ### Quick Start Demo
 ![Quick Start Demo](presentation/assets/screenshots/gif/start_simple_bat.gif)
 
-### Gradio Interface Demo
+### Quick Start Gradio Interface Demo
 ![Gradio Interface Demo](presentation/assets/screenshots/gif/start_gradio_bat.gif)
 
-### Chatbot Interface (Gradio)
+### Chatbot Interface
 ![Chatbot Interface](presentation/assets/screenshots/gif/gradio.png)
 
 ### Auto-generated API Docs (FastAPI/Swagger)
