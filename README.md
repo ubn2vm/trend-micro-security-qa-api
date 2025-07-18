@@ -30,47 +30,94 @@ Transform hours of document hunting into seconds of intelligent answers with our
 - **Frontend Framework**: Gradio
 - **Containerization**: Docker with Docker Compose
 - **System Monitoring**: psutil for resource utilization tracking
-- **Data Extracting**: pdfplumber for PDF 
+- **Document & Table Processing**: pdfplumber, camelot-py, PyMuPDF, tabula-py for comprehensive PDF text and table extraction with multi-strategy approach
 
 ## System Architecture & Design
 
 ### High-Level Architecture
 ```mermaid
-flowchart TB
-    subgraph Frontend
-        A[Gradio UI]
-    end
-    subgraph API
-        B[FastAPI Backend]
-    end
-    subgraph Processing
-        C[RAG Engine]
-        D[Gemini 2.0 API]
-    end
-    subgraph Data
-        E[FAISS Vector DB]
-        F[CREM Knowledge Base]
-    end
-    subgraph Monitoring
-        G[Health Monitor]
-        H[System Diagnostics]
-        I[Audit Logging]
-    end
+graph TB
 
+    %% Node Definitions - Define all nodes first
+    A["1.Gradio UI<br>Port 7860"]
+    B["2.User Query Input"]
+    C["3.FastAPI Backend<br>Port 8000"]
+    D["4.Request Validation"]
+    E["5.Authentication & Rate Limiting"]
+    F["6.RAG Processing Engine"]
+    G["7.Query Vectorization"]
+    H["8.Semantic Search"]
+    I["9.FAISS Vector Database"]
+    J["0.Knowledge Base<br>CREM Documents"]
+    K["11.Google Gemini 1.5 Pro API"]
+    O["12.Response Generation"]
+    Q["13.Structured Response"]
+    R["14.Response Validation"]
+    S["15.User Interface"]
+
+    %% Monitoring Layer Nodes
+    L1["Health Monitor"]
+    L2["System Diagnostics"]
+    L3["Audit Logging"]
+
+    %% Main Flow Connections
     A --> B
     B --> C
     C --> D
-    C --> E
+    D --> E
     E --> F
-    B -.-> G
+    F --> G
     G --> H
     H --> I
+    I -- "10.Retrieve Relevant Chunks" --> F
+    F --> K
+    K --> O
+    O --> Q
+    Q --> R
+    R --> S
+
+    %% Knowledge Base Initialization Connection
+    J -- "Initialization/Vectorization" --> I
+
+    %% Monitoring Layer Connections
+    C -.-> L1
+    L1 --> L2
+    L2 --> L3
+
+    %% Color Styles - High Contrast for Light/Dark Mode
+    %% Frontend Layer (Blue with White Text)
+    style A fill:#1976d2,stroke:#0d47a1,stroke-width:2px,color:#fff
+    style B fill:#1976d2,stroke:#0d47a1,stroke-width:2px,color:#fff
+    style S fill:#1976d2,stroke:#0d47a1,stroke-width:2px,color:#fff
+
+    %% API Layer (Purple with White Text)
+    style C fill:#7b1fa2,stroke:#4a148c,stroke-width:2px,color:#fff
+    style D fill:#7b1fa2,stroke:#4a148c,stroke-width:2px,color:#fff
+    style E fill:#7b1fa2,stroke:#4a148c,stroke-width:2px,color:#fff
+
+    %% Processing/LLM Layer (Green with White Text)
+    style F fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
+    style G fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
+    style H fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
+    style K fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
+    style O fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
+    style Q fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
+    style R fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
+
+    %% Database Layer (Orange with Black Text)
+    style I fill:#ffa726,stroke:#f57c00,stroke-width:2px,color:#000
+    style J fill:#ffa726,stroke:#f57c00,stroke-width:2px,color:#000
+
+    %% Monitoring Layer (Teal with Black Text)
+    style L1 fill:#0097a7,stroke:#006064,stroke-width:2px,color:#fff
+    style L2 fill:#0097a7,stroke:#006064,stroke-width:2px,color:#fff
+    style L3 fill:#0097a7,stroke:#006064,stroke-width:2px,color:#fff
 ```
 
 ### Data Flow & Processing Pipeline
 **Quick Overview**: User queries flow through the Gradio UI → FastAPI backend → RAG processing engine → FAISS vector search → Gemini 2.0 API → structured response back to user interface.
 
-For detailed data flow diagrams and technical specifications, please refer to our [Technical Documentation](docs/README.md).
+For detailed data flow diagrams and technical specifications, please refer to our [Data Flow](docs/data_flow.md).
 
 ### API Endpoints & Integration
 | Endpoint | Method | Description | Authentication |
@@ -92,7 +139,7 @@ For detailed data flow diagrams and technical specifications, please refer to ou
 - **Text Chunking**: 512-character chunks with 50-character overlap for optimal context retention
 - **Prompt Engineering**: Custom CREM_PROMPT_TEMPLATE with temperature 0.05 to minimize hallucinations
 - **Vector Search**: FAISS index with top-5 similarity matching and 0.7 score threshold
-- **Data Processing**: 19 chunks averaging 410 characters with 49 technical terms identified
+- **Data Processing**: 174 text chunks + 88 table extracts = 262 total vectors with 99,826 characters of structured table content and comprehensive enterprise document coverage
 
 ## Deployment Options
 
