@@ -1,0 +1,23 @@
+# Python 快取檔案
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 臨時檔案
+*.tmp
+*.temp
+*.log
+
+# 備份檔案
+backup_*/
+*.bak
+
+# 編輯器檔案
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 作業系統檔案
+.DS_Store
+Thumbs.db 
