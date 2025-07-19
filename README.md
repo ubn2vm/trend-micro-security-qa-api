@@ -165,10 +165,10 @@ source aiops/bin/activate
 pip install -r core_app/requirements.txt
 
 # API server startup
-python core_app/app.py
+python -m core_app.app
 
 # Frontend interface
-python core_app/gradio_app.py
+python -m core_app.gradio_app
 ```
 
 ### Containerized Deployment

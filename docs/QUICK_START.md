@@ -1,6 +1,6 @@
 # Trend Micro Internal Knowledge Q&A Bot - Quick Start Guide
 
-> **Important Note**: This guide provides detailed deployment steps and troubleshooting. For project overview, please read the [README.md](../../README.md) in the root directory first.
+> **Important Note**: This guide provides detailed deployment steps and troubleshooting. For project overview, please read the [README.md](../README.md) in the root directory first.
 
 ## Overview
 
