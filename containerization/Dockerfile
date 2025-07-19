@@ -1,40 +1,40 @@
-# 使用 Python 3.11 slim 版本作為基礎映像
+# Use Python 3.11 slim version as base image
 FROM python:3.11-slim
 
-# 設定工作目錄
+# Set working directory
 WORKDIR /app
 
-# 設定環境變數
+# Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# 安裝系統依賴
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# 複製依賴檔案
+# Copy dependency files
 COPY core_app/requirements.txt requirements.txt
 
-# 安裝 Python 依賴
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 複製應用程式檔案
+# Copy application files
 COPY . .
 
-# 建立非 root 使用者
+# Create non-root user
 RUN useradd --create-home --shell /bin/bash app && \
     chown -R app:app /app
 USER app
 
-# 暴露端口
+# Expose port
 EXPOSE 8000
 
-# 健康檢查
+# Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# 啟動命令
+# Start command
 CMD ["python", "-m", "core_app.app"] 
