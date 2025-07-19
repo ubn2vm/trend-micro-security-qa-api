@@ -61,18 +61,21 @@ Visit in your browser:
 
 ## Manual Setup (Alternative Method)
 
-### Step 1: Environment Setup
+### Step 1: Get Google API Key
+1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy the generated key (starts with 'AI')
+
+### Step 2: Configure Environment
 ```bash
-# Run environment setup script
-Dev/dev_scripts/setup_env.bat
+# Copy environment template
+# Windows:
+copy config\env.example .env
+# macOS/Linux:
+cp config/env.example .env
 ```
 
-This script will:
-- Create `.env` file from `config/env.example`
-- Open Notepad for API key configuration
-- Guide you through Google API key setup
-
-### Step 2: Configure API Key
 Edit the `.env` file:
 ```env
 # Google API Key - Replace with your actual API key
@@ -88,23 +91,31 @@ GOOGLE_API_KEY=your_actual_api_key_here
 
 ### Step 3: Manual Virtual Environment Setup
 ```bash
-# Create virtual environment
+# Environment setup
 python -m venv aiops
 
 # Activate virtual environment
-call aiops\Scripts\activate.bat
+# Windows:
+aiops\Scripts\activate.bat
+# macOS/Linux:
+source aiops/bin/activate
 
-# Install dependencies
-pip install -r core_app\requirements.txt
+pip install -r core_app/requirements.txt
 ```
 
-### Step 4: Start API Server
+### Step 4: Start Services
 ```bash
 # Ensure virtual environment is activated
-call aiops\Scripts\activate.bat
+# Windows:
+aiops\Scripts\activate.bat
+# macOS/Linux:
+source aiops/bin/activate
 
-# Start API server
-python core_app\app.py
+# API server startup
+python -m core_app.app
+
+# Frontend interface (run in a separate terminal)
+python -m core_app.gradio_app
 ```
 
 ## Docker Deployment
@@ -183,7 +194,7 @@ curl -X POST "http://localhost:8000/ask" \
 **Solution**:
 1. Check if command line shows `(aiops)` virtual environment
 2. Look for error messages
-3. Re-run `python core_app\app.py`
+3. Re-run `python -m core_app.app`
 
 ### Module Not Found Error
 **Symptoms**: "No module named 'xxx'" error

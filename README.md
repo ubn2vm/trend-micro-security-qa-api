@@ -153,7 +153,18 @@ presentation/scripts/start_simple.bat
 
 ### Manual Deployment
 ```bash
-# Environment setup
+# Step 1: Get Google API Key
+# Visit https://makersuite.google.com/app/apikey to get your API key
+
+# Step 2: Configure Environment
+# Copy environment template
+cp config/env.example .env
+# Windows: copy config\env.example .env
+
+# Edit .env file to add your API key:
+# GOOGLE_API_KEY=your_actual_api_key_here
+
+# Step 3: Environment setup
 python -m venv aiops
 
 # Activate virtual environment
@@ -164,10 +175,11 @@ source aiops/bin/activate
 
 pip install -r core_app/requirements.txt
 
+# Step 4: Start services
 # API server startup
 python -m core_app.app
 
-# Frontend interface
+# Frontend interface (run in separate terminal)
 python -m core_app.gradio_app
 ```
 
