@@ -17,8 +17,51 @@ SUGGESTED_QUESTIONS = [
 # 儲存對話歷史
 chat_history = []
 
-# 問答主函式，支援 loading 與超時提示
+# 動態 CREM Prompt 模板
+ENHANCED_CREM_PROMPT_TEMPLATE = """
+你是一個趨勢科技資安技術專家，專門回答關於 CREM (Cyber Risk Exposure Management) 和網路安全的問題。
 
+系統資訊：您正在使用一個完整的知識庫系統，基於檢索到的相關資料進行分析。
+
+基於以下檢索到的相關資料，準確回答用戶的問題：
+
+=== 檢索結果 ({result_count}個結果) ===
+{context}
+
+=== 用戶問題 ===
+{question}
+
+=== 回答指導原則 ===
+1. **充分利用檢索結果**: 基於提供的{result_count}個檢索結果進行全面分析
+2. **表格數據判斷**: 仔細檢查檢索結果，只有當內容明確包含數字、統計、百分比、排名等具體數據時才提供數據洞察
+3. **專業術語準確**: 正確使用 CREM、CRI、Trend Vision One 等專業術語
+4. **結構化回答**: 提供清晰的摘要和詳細說明
+5. **來源透明**: 在文末簡潔列出主要資料來源
+
+=== 回答格式要求 ===
+**📋 摘要**
+[簡潔摘要，突出核心要點]
+
+**🔍 詳細分析**
+[基於檢索結果的詳細分析和解釋]
+
+**💡 關鍵發現**
+- [要點1]
+- [要點2] 
+- [要點3]
+
+**📊 數據洞察** (重要：只有當檢索結果包含明確的數字統計、表格數據、百分比、排名等具體數據時才包含此部分，否則完全跳過)
+[整理相關統計和表格資料]
+
+**📚 資料來源**
+[簡潔列出主要資料來源文件名稱]
+
+重要提醒：如果檢索結果沒有包含具體的統計數據、數字或表格內容，請完全省略「📊 數據洞察」部分，直接從「💡 關鍵發現」跳到「📚 資料來源」。
+
+請開始回答：
+"""
+
+# 問答主函式，支援 loading 與超時提示
 def ask_ai(question, history, status_box):
     if not question.strip():
         return history, "", gr.update(interactive=True), ""
@@ -29,20 +72,71 @@ def ask_ai(question, history, status_box):
 
     def fetch():
         try:
-            response = requests.post(API_URL, json={"question": question}, timeout=10)
+            response = requests.post(API_URL, json={"question": question}, timeout=15)
             if response.status_code == 200:
-                result["answer"] = response.json().get("answer", "[無回應]")
+                data = response.json()
+                answer = data.get("answer", "[無回應]")
+                citations = data.get("citations", [])
+                
+                # ✅ 調試：打印收到的數據
+                print(f"Debug - Citations received: {len(citations)} items")
+                for i, citation in enumerate(citations[:2]):
+                    print(f"  Citation {i+1}: {citation.get('source', 'unknown')} - {citation.get('content', '')[:50]}...")
+                
+                # ✅ 修改檢查條件：總是添加詳細的引用信息
+                if citations:
+                    # 檢查是否LLM回答已經包含簡單的資料來源
+                    has_simple_sources = "📚 資料來源" in answer and "```" not in answer
+                    
+                    if has_simple_sources:
+                        # 如果有簡單資料來源，替換為詳細版本
+                        answer += "\n\n" + "─" * 50 + "\n"
+                        answer += "📚 **詳細資料來源與引用**\n\n"
+                    elif "📚 資料來源" not in answer:
+                        # 如果完全沒有資料來源，添加
+                        answer += "\n\n" + "─" * 50 + "\n"
+                        answer += "📚 **資料來源與引用**\n\n"
+                    else:
+                        # 已經有詳細資料來源，不重複添加
+                        pass
+                    
+                    # 只有在沒有詳細引用時才添加
+                    if "```" not in answer:
+                        # 去重並顯示引用內容
+                        seen_sources = set()
+                        for citation in citations:
+                            source_file = citation.get("source", "unknown")
+                            content = citation.get("content", "")
+                            content_type = citation.get("content_type", "text")
+                            
+                            if source_file not in seen_sources:
+                                seen_sources.add(source_file)
+                                
+                                # 顯示文件名（✅ 不顯示簡短引用片段）
+                                type_emoji = "📄" if content_type == "text" else "📊"
+                                answer += f"**{type_emoji} {source_file}**\n"
+                                
+                                # 截取原始引用內容
+                                if len(content) > 200:
+                                    display_content = content[:200] + "..."
+                                else:
+                                    display_content = content
+                                
+                                # 直接顯示完整原始內容
+                                answer += f"```\n{display_content}\n```\n\n"
+                
+                result["answer"] = answer
             else:
                 result["answer"] = f"[API 錯誤] 狀態碼: {response.status_code}"
         except Exception as e:
             result["answer"] = f"[連線失敗] {str(e)}"
+            print(f"Error in fetch: {e}")  # 調試信息
         finally:
             done.set()
 
     thread = threading.Thread(target=fetch)
     thread.start()
-    # 3 秒內沒回應顯示提示
-    for _ in range(30):
+    for _ in range(50):
         if done.is_set():
             break
         time.sleep(0.1)
@@ -285,6 +379,6 @@ with gr.Blocks(css=custom_css, theme=gr.themes.Soft()) as demo:
 demo.launch(
     server_name="127.0.0.1",
     server_port=7860,
-    share=True,
+    share=False,
     show_error=True
 )
