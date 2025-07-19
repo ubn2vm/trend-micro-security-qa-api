@@ -6,9 +6,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
+# 載入環境變數 - 使用絕對路徑確保在任何目錄下都能正確載入
+from pathlib import Path
+
+# 取得專案根目錄的絕對路徑
+PROJECT_ROOT = Path(__file__).parent.parent
+CONFIG_PATH = PROJECT_ROOT / 'config' / 'config.env'
+ENV_PATH = PROJECT_ROOT / '.env'
+
 # 載入環境變數 - 先載入 config.env，再載入 .env（API Key）
-load_dotenv('../config/config.env')
-load_dotenv('../.env')
+load_dotenv(CONFIG_PATH)
+load_dotenv(ENV_PATH)
 
 # 導入我們的問答系統
 ## 使用絕對導入，確保在各種執行環境下都能正常工作

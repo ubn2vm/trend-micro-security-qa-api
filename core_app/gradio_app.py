@@ -285,6 +285,6 @@ with gr.Blocks(css=custom_css, theme=gr.themes.Soft()) as demo:
 demo.launch(
     server_name="127.0.0.1",
     server_port=7860,
-    share=False,
+    share=True,
     show_error=True
 )
