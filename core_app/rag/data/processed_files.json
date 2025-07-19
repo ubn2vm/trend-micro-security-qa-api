@@ -1,0 +1,22 @@
+{
+  "Research-Risk-Report-2025.pdf": {
+    "filename": "Research-Risk-Report-2025.pdf",
+    "file_hash": "725cfa3357878d132d815c99d13cba22",
+    "file_size": 5016505,
+    "last_modified": "2025-07-16T13:34:08.141541",
+    "processed_date": "2025-07-18T10:39:54.608402",
+    "chunk_count": 155,
+    "source_type": "pdf",
+    "version": 1
+  },
+  "sb-crem.pdf": {
+    "filename": "sb-crem.pdf",
+    "file_hash": "f8d52504b01d4552d202d48875fad82a",
+    "file_size": 1102528,
+    "last_modified": "2025-07-10T21:47:52.562165",
+    "processed_date": "2025-07-18T10:39:55.680473",
+    "chunk_count": 19,
+    "source_type": "pdf",
+    "version": 1
+  }
+}
