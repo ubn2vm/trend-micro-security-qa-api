@@ -34,90 +34,85 @@ Transform hours of document hunting into seconds of intelligent answers with our
 
 ## System Architecture & Design
 
-### High-Level Architecture
+### High-Level Architecture Overview
 ```mermaid
-graph TB
-
-    %% Node Definitions - Define all nodes first
-    A["1.Gradio UI<br>Port 7860"]
-    B["2.User Query Input"]
-    C["3.FastAPI Backend<br>Port 8000"]
-    D["4.Request Validation"]
-    E["5.Authentication & Rate Limiting"]
-    F["6.RAG Processing Engine"]
-    G["7.Query Vectorization"]
-    H["8.Semantic Search"]
-    I["9.FAISS Vector Database"]
-    J["0.Knowledge Base<br>CREM Documents"]
-    K["11.Google Gemini 1.5 Pro API"]
-    O["12.Response Generation"]
-    Q["13.Structured Response"]
-    R["14.Response Validation"]
-    S["15.User Interface"]
-
-    %% Monitoring Layer Nodes
-    L1["Health Monitor"]
-    L2["System Diagnostics"]
-    L3["Audit Logging"]
-
-    %% Main Flow Connections
+graph LR
+    subgraph "User Interface Layer"
+        A[Gradio Web UI]
+    end
+    
+    subgraph "API Gateway Layer"
+        B[FastAPI Backend]
+    end
+    
+    subgraph "AI Processing Layer"
+        C[RAG Engine]
+        D[Vector Search]
+        E[LLM Integration]
+    end
+    
+    subgraph "Data Layer"
+        F[Knowledge Base]
+        G[Vector Store]
+    end
+    
+    subgraph "Monitoring Layer"
+        H[Health Monitor]
+        I[Audit Logging]
+    end
+    
     A --> B
     B --> C
     C --> D
     D --> E
-    E --> F
+    E --> C
     F --> G
-    G --> H
+    G --> D
+    B --> H
     H --> I
-    I -- "10.Retrieve Relevant Chunks" --> F
-    F --> K
-    K --> O
-    O --> Q
-    Q --> R
-    R --> S
-
-    %% Knowledge Base Initialization Connection
-    J -- "Initialization/Vectorization" --> I
-
-    %% Monitoring Layer Connections
-    C -.-> L1
-    L1 --> L2
-    L2 --> L3
-
-    %% Color Styles - High Contrast for Light/Dark Mode
-    %% Frontend Layer (Blue with White Text)
-    style A fill:#1976d2,stroke:#0d47a1,stroke-width:2px,color:#fff
-    style B fill:#1976d2,stroke:#0d47a1,stroke-width:2px,color:#fff
-    style S fill:#1976d2,stroke:#0d47a1,stroke-width:2px,color:#fff
-
-    %% API Layer (Purple with White Text)
-    style C fill:#7b1fa2,stroke:#4a148c,stroke-width:2px,color:#fff
-    style D fill:#7b1fa2,stroke:#4a148c,stroke-width:2px,color:#fff
-    style E fill:#7b1fa2,stroke:#4a148c,stroke-width:2px,color:#fff
-
-    %% Processing/LLM Layer (Green with White Text)
-    style F fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
-    style G fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
-    style H fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
-    style K fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
-    style O fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
-    style Q fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
-    style R fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
-
-    %% Database Layer (Orange with Black Text)
-    style I fill:#ffa726,stroke:#f57c00,stroke-width:2px,color:#000
-    style J fill:#ffa726,stroke:#f57c00,stroke-width:2px,color:#000
-
-    %% Monitoring Layer (Teal with Black Text)
-    style L1 fill:#0097a7,stroke:#006064,stroke-width:2px,color:#fff
-    style L2 fill:#0097a7,stroke:#006064,stroke-width:2px,color:#fff
-    style L3 fill:#0097a7,stroke:#006064,stroke-width:2px,color:#fff
+    
+    %% GitHub-friendly color scheme - works on both light and dark themes
+    style A fill:#0366d6,stroke:#0366d6,stroke-width:2px,color:#ffffff
+    style B fill:#6f42c1,stroke:#6f42c1,stroke-width:2px,color:#ffffff
+    style C fill:#28a745,stroke:#28a745,stroke-width:2px,color:#ffffff
+    style D fill:#28a745,stroke:#28a745,stroke-width:2px,color:#ffffff
+    style E fill:#28a745,stroke:#28a745,stroke-width:2px,color:#ffffff
+    style F fill:#f66a0a,stroke:#f66a0a,stroke-width:2px,color:#ffffff
+    style G fill:#f66a0a,stroke:#f66a0a,stroke-width:2px,color:#ffffff
+    style H fill:#17a2b8,stroke:#17a2b8,stroke-width:2px,color:#ffffff
+    style I fill:#17a2b8,stroke:#17a2b8,stroke-width:2px,color:#ffffff
 ```
 
-### Data Flow & Processing Pipeline
-**Quick Overview**: User queries flow through the Gradio UI → FastAPI backend → RAG processing engine → FAISS vector search → Gemini 2.0 API → structured response back to user interface.
+### Core Design Principles
 
-For detailed data flow diagrams and technical specifications, please refer to our [Data Flow](docs/data_flow.md).
+#### 1. **Modular Architecture**
+- **Separation of Concerns**: Each layer has distinct responsibilities
+- **Scalability**: Independent scaling of UI, API, and processing components
+- **Maintainability**: Clear interfaces between components
+
+#### 2. **RAG-Powered Intelligence**
+- **Retrieval-Augmented Generation**: Combines document search with AI generation
+- **Real-time Knowledge Access**: Instant access to up-to-date information
+- **Source Attribution**: Every answer includes reference to source documents
+
+#### 3. **Enterprise-Grade Features**
+- **Multi-format Document Support**: PDF, tables, and structured data
+- **Vector-based Search**: Semantic similarity for context-aware retrieval
+- **Performance Optimization**: Sub-second response times for user queries
+
+### Business Value & Impact
+
+#### **Productivity Enhancement**
+- **Time Savings**: Reduce document hunting from hours to seconds
+- **Accuracy Improvement**: Eliminate outdated information risks
+- **Knowledge Democratization**: Make expert knowledge accessible to all team members
+
+#### **Operational Efficiency**
+- **Reduced Training Time**: New team members can quickly access product knowledge
+- **Consistent Responses**: Standardized answers across the organization
+- **Scalable Support**: Handle multiple concurrent users without degradation
+
+For detailed technical implementation and data flow specifications, please refer to our [Data Flow Documentation](docs/data_flow.md).
 
 ### API Endpoints & Integration
 | Endpoint | Method | Description | Authentication |
