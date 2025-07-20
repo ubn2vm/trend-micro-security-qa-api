@@ -72,47 +72,12 @@ backgroundImage: url('https://marp.app/assets/hero-background.svg')
 > 輸入一個關於 CREM 技術細節的問題，展示系統的智能回答能力。
 
 ---
-
-### 技術亮點總結（30 秒）
-**畫面**：
-- 技術能力總結
-- 工程實踐展示
-
-
-
-### 結尾（20 秒）
-**畫面**：
-- 專案資訊
-- 技術標籤
-
-
-
-
-
-
-
----
-
-
-
-# 🛠️ 技術棧
-
-- **後端框架**：FastAPI + Uvicorn
-- **AI 服務**：Google Gemini 2.0 API
-- **向量資料庫**：FAISS
-- **前端介面**：Gradio
-- **容器化**：Docker + Docker Compose
-- **監控**：psutil
-
----
-
-# 🏗️ 系統架構
-
+### 系統架構 (High-Level)
 <img src="system.png" width="500"> 
 
----
 
-# 📊 資料流程
+---
+# 資料流程
 
 |  |
 |:--:|
@@ -120,73 +85,23 @@ backgroundImage: url('https://marp.app/assets/hero-background.svg')
 
 | <img src="data flow 2.png" width="500"> |
 
-
 ---
 
-# 🚀 一鍵啟動流程
-
-## 自動化部署腳本
-
-```bash
-cd presentation\scripts && start_simple.bat
-```
-
-**執行步驟**：
-1. 建立 Python 虛擬環境
-2. 安裝所需依賴套件
-3. 引導設定 API Key
-4. 啟動 FastAPI 後端服務
-
----
-
-# 🔧 API 服務啟動
-
-## FastAPI 自動文檔
-
-訪問：`http://localhost:8000/docs`
-
-**特色**：
-- 自動生成互動式 API 文檔
-- 可直接在瀏覽器中測試端點
-- 完整的請求/回應範例
-
----
-
-# 🎨 Gradio 前端介面
-
-## 啟動命令
-```bash
-cd presentation\scripts && start_gradio.bat
-```
-
-## 介面特色
-- 直觀的聊天功能
-- 建議問題按鈕
-- 即時互動支援
-- 響應式設計
-
----
-
-# 🧪 現場互動測試
-
-## 測試案例
-
-**預設問題測試**：
-- 點擊建議問題按鈕
-- 驗證系統基本功能
-
-**客製化問題測試**：
-- 輸入 CREM 技術細節問題
-- 展示智能回答能力
-
----
-
-# 📈 技術亮點
-
-## 工程實踐
+### 技術亮點總結（30 秒）
+#### 工程實踐
 - **RAG 管道優化**：512 字元分塊，50 字元重疊
 - **提示工程**：溫度 0.05，最小化幻覺
+#### 技術棧
 - **向量搜尋**：Top-5 相似度匹配，0.7 閾值
+- **後端框架**：FastAPI + Uvicorn
+- **AI 服務**：LangChain, Google Gemini 2.0 API
+- **向量資料庫**：FAISS
+- **前端介面**：Gradio
+- **容器化**：Docker + Docker Compose
+
+---
+
+### Q&A
 
 ---
 
@@ -224,20 +139,3 @@ cd presentation\scripts && start_gradio.bat
 - GitHub Actions 自動化測試
 - 每次提交自動執行測試
 
----
-
-
-
----
-
-
----
-
-<!-- _class: lead -->
-
-# 謝謝觀看！
-
-## 趨勢RAG活字典
-### 從自動化部署到實際互動測試
-
-**聯絡資訊**：請參考專案文檔或聯絡開發團隊 
