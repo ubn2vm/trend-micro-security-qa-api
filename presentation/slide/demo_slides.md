@@ -9,11 +9,10 @@ backgroundImage: url('https://marp.app/assets/hero-background.svg')
 # 趨勢RAG活字典
 ## Trend Micro RAG Walking Dictionary
 
-### 一鍵啟動 Demo 演示
 
 
-### Tech
-#API, #RAG, #LLM, #Docker, #Docker
+
+
 
 
 
@@ -54,7 +53,6 @@ backgroundImage: url('https://marp.app/assets/hero-background.svg')
 - 展示聊天介面
 - 展示建議問題按鈕
 
-
 <img src="gradio.png" width="700">
 
 
@@ -63,17 +61,19 @@ backgroundImage: url('https://marp.app/assets/hero-background.svg')
 ### 現場互動測試
 - 切換到現場的 Gradio 介面 
 - 測試預設問題和客製化問題
+- 
 
 
-> **測試 1 - 預設問題**：
-> 點擊建議問題按鈕，測試系統對預設問題的回答能力。
+> **測試 1 - 基礎問題**：
+> 什麼是CREM？
+> 什麼是CRI？
 
 > **測試 2 - 客製化問題**：
 > 輸入一個關於 CREM 技術細節的問題，展示系統的智能回答能力。
 
 ---
 ### 系統架構 (High-Level)
-<img src="system.png" width="500"> 
+<img src="system.png" width="1000"> 
 
 
 ---
@@ -81,9 +81,9 @@ backgroundImage: url('https://marp.app/assets/hero-background.svg')
 
 |  |
 |:--:|
-| <img src="data flow 1.png" width="500"> |
+| <img src="data flow 1.png" width="700"> |
 
-| <img src="data flow 2.png" width="500"> |
+| <img src="data flow 2.png" width="700"> |
 
 ---
 
@@ -102,6 +102,13 @@ backgroundImage: url('https://marp.app/assets/hero-background.svg')
 ---
 
 ### Q&A
+
+---
+
+### 影片
+
+[Windows一鍵安裝](https://youtu.be/lokCNrp3NSg)
+[聊天機器人](https://youtu.be/7nk6L5uUotc)
 
 ---
 
@@ -134,7 +141,11 @@ backgroundImage: url('https://marp.app/assets/hero-background.svg')
 
 # 🚀 未來發展
 
-## RAG測試
+## RAG 系統評估
+- 回應正確率
+- 相關性
+## 測試框架
+- 題目測試
 ## CI/CD 管道
 - GitHub Actions 自動化測試
 - 每次提交自動執行測試
