@@ -1,21 +1,31 @@
 {
-  "Research-Risk-Report-2025.pdf": {
-    "filename": "Research-Risk-Report-2025.pdf",
-    "file_hash": "725cfa3357878d132d815c99d13cba22",
-    "file_size": 5016505,
-    "last_modified": "2025-07-16T13:34:08.141541",
-    "processed_date": "2025-07-18T10:39:54.608402",
-    "chunk_count": 155,
+  "ddi_6.8.sp1_ag.pdf": {
+    "filename": "ddi_6.8.sp1_ag.pdf",
+    "file_hash": "fe9431c6bc778d78a380140a089b9e34",
+    "file_size": 3636747,
+    "last_modified": "2025-11-22T13:09:38.182897",
+    "processed_date": "2025-11-24T12:18:56.544871",
+    "chunk_count": 988,
     "source_type": "pdf",
     "version": 1
   },
-  "sb-crem.pdf": {
-    "filename": "sb-crem.pdf",
-    "file_hash": "f8d52504b01d4552d202d48875fad82a",
-    "file_size": 1102528,
-    "last_modified": "2025-07-10T21:47:52.562165",
-    "processed_date": "2025-07-18T10:39:55.680473",
-    "chunk_count": 19,
+  "ddi_6.8.sp1_syslog.pdf": {
+    "filename": "ddi_6.8.sp1_syslog.pdf",
+    "file_hash": "7097afd32a0e6842e4bc841292b4194e",
+    "file_size": 1069738,
+    "last_modified": "2025-11-22T13:09:38.089489",
+    "processed_date": "2025-11-24T12:19:10.340776",
+    "chunk_count": 230,
+    "source_type": "pdf",
+    "version": 1
+  },
+  "docs-suricata-io-en-latest.pdf": {
+    "filename": "docs-suricata-io-en-latest.pdf",
+    "file_hash": "0d2b425b4e28570947abfbb460d3a15d",
+    "file_size": 4770219,
+    "last_modified": "2025-11-22T13:09:38.300433",
+    "processed_date": "2025-11-24T12:20:21.340331",
+    "chunk_count": 2677,
     "source_type": "pdf",
     "version": 1
   }
