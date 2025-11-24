@@ -15,8 +15,8 @@ graph TB
     G["7.Query Vectorization"]
     H["8.Semantic Search"]
     I["9.FAISS Vector Database"]
-    J["0.Knowledge Base<br>CREM Documents"]
-    K["11.Google Gemini 2.0 API"]
+    J["0.Knowledge Base<br>Product Documents"]
+    K["11.Google Gemini 2.5 API"]
     O["12.Response Generation"]
     Q["13.Structured Response"]
     R["14.Response Validation"]
@@ -109,7 +109,7 @@ graph TB
 
 ### 4. Data Layer
 - **FAISS Vector Database**: High-performance similarity search index with 262 total vectors
-- **Knowledge Base**: CREM documents (174 text chunks + 88 table extracts)
+- **Knowledge Base**: Product documents (174 text chunks + 88 table extracts)
 
 ### 5. Monitoring Layer
 - **Health Monitor**: System status and performance metrics using psutil
@@ -136,10 +136,10 @@ INDEX_TYPE = "faiss"  # Fast similarity search
 # LLM Configuration
 TEMPERATURE = 0.05  # Low randomness for consistent answers
 MAX_TOKENS = 2048
-MODEL_NAME = "gemini-2.0-flash-lite"
+MODEL_NAME = "gemini-2.5-flash"
 
 # Prompt Engineering
-CREM_PROMPT_TEMPLATE = """
+PROMPT_TEMPLATE = """
 You are a Trend Micro product expert. Answer based on the provided context.
 Context: {context}
 Question: {question}

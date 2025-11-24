@@ -1,5 +1,5 @@
-# Trend Micro Internal Knowledge Q&A Robot 
-Transform hours of document hunting into seconds of intelligent answers with our RAG-powered knowledge assistant. First product knowledge is based on Cyber Risk Exposure Management (CREM).
+# Trend Micro Technical Knowledge Q&A Assistant
+Transform hours of document hunting into seconds of intelligent answers with our RAG-powered knowledge assistant. Supports company technical documentation, research reports, network error codes, log formats, and product knowledge (starting from DDI).
 
 ## Problem & Solution
 
@@ -7,26 +7,22 @@ Transform hours of document hunting into seconds of intelligent answers with our
 
 **My Solution**: Built this RAG-powered knowledge assistant that instantly finds relevant information and provides accurate answers with source references. This eliminates manual document hunting and enables immediate access to current information, significantly boosting both individual and organizational productivity.
 
+
 ## Demo & Screenshots
 
-### Quick Start Demo
-![Quick Start Demo](presentation/assets/screenshots/gif/start_simple_bat.gif)
+### Technical Query Examples
 
-### Quick Start Gradio Interface Demo
-![Gradio Interface Demo](presentation/assets/screenshots/gif/start_gradio_bat.gif)
+The chatbot can now answer questions about DDI syslog, Suricata rules, and network error codes. Below are example queries that demonstrate the system's capabilities:
 
-### Chatbot Interface
-![Chatbot Interface](presentation/assets/screenshots/gif/gradio.png)
+*Screenshot: `docs/chatbot.gif`*
 
-### Auto-generated API Docs (FastAPI/Swagger)
-![API Documentation](presentation/assets/screenshots/gif/ap1.png)
 
 ## Technology Stack
 
 - **Runtime Environment**: Python 3.11+
 - **Web Framework**: FastAPI with Uvicorn ASGI server
 - **AI/ML Libraries**: LangChain, FAISS, Sentence Transformers
-- **Cloud AI Service**: Gemini 2.0 Flash-Lite (gemini-2.0-flash-lite)
+- **Cloud AI Service**: Gemini 2.5 Flash (gemini-2.5-flash)
 - **Frontend Framework**: Gradio
 - **Containerization**: Docker with Docker Compose
 - **System Monitoring**: psutil for resource utilization tracking
@@ -123,6 +119,13 @@ For detailed technical implementation and data flow specifications, please refer
 | `/examples` | GET | Sample query examples | None |
 | `/ask` | POST | Query processing endpoint | **No Auth (Demo)** |
 
+### Web Interface Access
+- **Gradio Web UI**: `http://localhost:7860` or `http://127.0.0.1:7860`
+  - ⚠️ **Important**: Do NOT use `http://0.0.0.0:7860` (browsers cannot access `0.0.0.0`)
+  - The Gradio interface requires the API service to be running on `http://localhost:8000`
+- **API Documentation (Swagger UI)**: `http://localhost:8000/docs`
+- **API Health Check**: `http://localhost:8000/health`
+
 **Security Notice**:
 - `/ask` endpoint currently has **no authentication**
 - This is a demo/development version, not production-ready
@@ -132,85 +135,88 @@ For detailed technical implementation and data flow specifications, please refer
 
 #### RAG Pipeline Optimization
 - **Text Chunking**: 512-character chunks with 50-character overlap for optimal context retention
-- **Prompt Engineering**: Custom CREM_PROMPT_TEMPLATE with temperature 0.05 to minimize hallucinations
+- **Prompt Engineering**: Custom PROMPT_TEMPLATE with temperature 0.05 to minimize hallucinations
 - **Vector Search**: FAISS index with top-5 similarity matching and 0.7 score threshold
 - **Data Processing**: 174 text chunks + 88 table extracts = 262 total vectors with 99,826 characters of structured table content and comprehensive enterprise document coverage
 
-## Deployment Options
+## Quick Start Guide
 
-### Quick Start (Windows Only, Recommended)
+### Step 1: Clone the Repository
+
 ```bash
-# Execute automated deployment script
-presentation/scripts/start_simple.bat
+git clone https://github.com/your-username/aiops.git
+cd aiops
 ```
 
-**Note**: Currently, one-click deployment scripts are only available for Windows. macOS and Linux versions are planned for future releases.
+### Step 2: Setup Python Virtual Environment (Required Step 3, 4, 5)
 
-### Manual Deployment
 ```bash
-# Step 1: Get Google API Key
-# Visit https://makersuite.google.com/app/apikey to get your API key
-
-# Step 2: Configure Environment
-# Copy environment template
-cp config/env.example .env
-# Windows: copy config\env.example .env
-
-# Edit .env file to add your API key:
-# GOOGLE_API_KEY=your_actual_api_key_here
-
-# Step 3: Environment setup
+# Create virtual environment
 python -m venv aiops
 
 # Activate virtual environment
 # Windows:
-aiops\Scripts\activate.bat
+call aiops\Scripts\activate.bat
 # macOS/Linux:
 source aiops/bin/activate
 
+# Install dependencies
 pip install -r core_app/requirements.txt
-
-# Step 4: Start services
-# API server startup
-python -m core_app.app
-
-# Frontend interface (run in separate terminal)
-python -m core_app.gradio_app
 ```
 
-### Containerized Deployment
+### Step 3: Initialize RAG System (Build Vector Database)
+
+**use Python directly (with virtual environment activated):**
 ```bash
-# Docker Compose deployment
+# Windows 
+python scripts/init_rag.py
+
+# Linux/Mac
+python scripts/init_rag.py
+```
+
+**Note**: After this step completes, the vector database files (`index.faiss` and `index.pkl`) will be created. The API will **automatically load** this database when it starts (see Step 5 below).
+
+### Step 4: Configure Environment
+
+```bash
+# Copy environment template
+cp config/env.example .env
+# Edit .env file to add your Google API Key: GOOGLE_API_KEY=your_actual_api_key_here
+```
+
+### Step 5: Start Services
+
+**Using Docker:**
+```bash
 cd containerization
 docker-compose up -d
 ```
 
-## Development Status
+**Local Startup:**
+```bash
+# Start API server
+python -m core_app.app
 
-### TODOs
-- **Testing Framework**: pytest security tests execution and validation
-    - Unit Tests: Individual component functionality
-    - Integration Tests: End-to-end system validation
-    - Performance Tests: Load testing and response time analysis
-    - Security Tests: Vulnerability assessment and penetration testing
-- **Security Implementation**: Security testing and vulnerability assessment
-    - API Key Management
-    - Input Validation
-    - Data Protection
-    - Container Security
+# Start Gradio interface (in separate terminal)
+python -m core_app.gradio_app
+# After Gradio starts, access the interface at:
+# http://localhost:7860 or http://127.0.0.1:7860
+```
 
-## Future Enhancements
+## Future Roadmap
 
-### RAG System Evaluation Metrics
-- **Response Accuracy**: Implement automated testing with predefined Q&A pairs to measure answer correctness
-- **Relevance Scoring**: Use cosine similarity between query and retrieved context to ensure relevance
-- **Hallucination Detection**: Compare generated responses against source documents using semantic similarity
+### 1. Advanced Retrieval Strategy (Search Quality)
+* **Hybrid Retrieval (BM25 + Vector)**: Implement a reciprocal-rank fusion pipeline to balance keyword matching (for specific error codes) with semantic search, addressing the limitations of pure vector search on technical jargon.
+* **Re-ranking Layer**: Integrate a Cross-Encoder re-ranker (e.g., BGE-Reranker) to refine the top-k retrieved contexts before feeding them to the LLM.
 
-### Testing Framework Enhancement
-- **Automated RAG Testing**: Create test suite with 50+ predefined Q&A pairs covering different CREM topics
+### 2. Robust Data Pipeline (Data Engineering)
+* **Enhanced Table Extraction**: Harden layout-aware parsing for complex Trend Micro manuals. Plan to benchmark `pdfplumber` vs `Unstructured.io` and build a regression test set specifically for error-code tables.
+* **Incremental Indexing**: Move from full re-indexing to an event-driven pipeline (using Celery or Kafka) that processes only new/updated documents.
 
-### CI/CD Pipeline Implementation
-- **Automated Testing**: GitHub Actions workflow that runs tests on every commit
+### 3. LLM Ops & Evaluation (MLOps)
+* **Automated Evaluation (Ragas/TruLens)**: Integrate a framework to continuously score "Context Recall" and "Faithfulness" to prevent regression when updating the knowledge base.
+* **Guardrails**: Implement output validation to ensure the model refuses to answer non-technical questions or sensitive internal data inquiries.
 
 ## Support and Contact
 
