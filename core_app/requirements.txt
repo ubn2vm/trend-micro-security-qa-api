@@ -1,7 +1,9 @@
 # AI and Machine Learning
 langchain
+langchain-core
 langchain-community
 langchain-huggingface
+langchain-text-splitters
 faiss-cpu
 sentence-transformers
 langchain-google-genai

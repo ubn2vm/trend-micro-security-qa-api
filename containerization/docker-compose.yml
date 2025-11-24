@@ -1,13 +1,15 @@
-version: '3.8'
-
 services:
   aiops-api:
-    build: .
+    build:
+      context: ..
+      dockerfile: containerization/Dockerfile
+    env_file:
+      - ../.env
     ports:
       - "8000:8000"
     environment:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash-lite}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
       - GEMINI_TEMPERATURE=${GEMINI_TEMPERATURE:-0.1}
       - GEMINI_MAX_TOKENS=${GEMINI_MAX_TOKENS:-200}
       - API_HOST=0.0.0.0
@@ -16,7 +18,8 @@ services:
       - RAG_EMBEDDING_MODEL=${RAG_EMBEDDING_MODEL:-sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     volumes:
-      - ./core_app/rag/vector_store:/app/core_app/rag/vector_store:ro
+      - ../core_app/rag/vector_store:/app/core_app/rag/vector_store:ro
+      - ../.env:/app/.env:ro
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
@@ -24,3 +27,23 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  aiops-gradio:
+    build:
+      context: ..
+      dockerfile: containerization/Dockerfile
+    env_file:
+      - ../.env
+    ports:
+      - "7860:7860"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - GEMINI_TEMPERATURE=${GEMINI_TEMPERATURE:-0.1}
+      - GEMINI_MAX_TOKENS=${GEMINI_MAX_TOKENS:-200}
+      - API_URL=http://aiops-api:8000
+    depends_on:
+      aiops-api:
+        condition: service_healthy
+    command: ["python", "-m", "core_app.gradio_app"]
+    restart: unless-stopped
