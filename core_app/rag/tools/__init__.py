@@ -4,8 +4,12 @@ RAG 系統工具模組
 """
 
 from .incremental_updater import IncrementalRAGUpdater
-from .crem_knowledge import *
+from .vector_db_builder import VectorDatabaseBuilder
+# 向後兼容：保留舊的類名別名
+from .vector_db_builder import VectorDatabaseBuilder as KnowledgeBaseBuilder
 
 __all__ = [
     'IncrementalRAGUpdater',
+    'VectorDatabaseBuilder',
+    'KnowledgeBaseBuilder',  # 向後兼容別名
 ] 

@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from dataclasses import dataclass, asdict
-from langchain.schema import Document
+from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 
@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from processors.text_processor import CREMTextProcessor
+from processors.text_processor import TextProcessor
 from processors.pdf_processor import extract_pdf_text  # 使用函數而不是類別
 
 # 設定日誌
@@ -50,7 +50,7 @@ class IncrementalRAGUpdater:
         self.embeddings = HuggingFaceEmbeddings(
             model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
         )
-        self.text_processor = CREMTextProcessor()
+        self.text_processor = TextProcessor()
         # 移除 self.pdf_processor，我們會直接使用函數
         self.processed_files: Dict[str, FileMetadata] = self._load_processed_files()
     
@@ -171,7 +171,7 @@ class IncrementalRAGUpdater:
             try:
                 extracted_text = extract_pdf_text(str(file_path))
                 cleaned_text = self.text_processor.clean_text(extracted_text)
-                chunks = self.text_processor.chunk_text(cleaned_text)
+                chunks = self.text_processor.chunk_text(cleaned_text, source_path=str(file_path))
             except Exception as e:
                 logger.error(f"PDF 處理失敗: {e}")
                 # 如果 PDF 處理失敗，嘗試使用 pdfplumber 直接處理
@@ -185,7 +185,7 @@ class IncrementalRAGUpdater:
                                 text_parts.append(text)
                         extracted_text = '\n\n'.join(text_parts)
                         cleaned_text = self.text_processor.clean_text(extracted_text)
-                        chunks = self.text_processor.chunk_text(cleaned_text)
+                        chunks = self.text_processor.chunk_text(cleaned_text, source_path=str(file_path))
                 except Exception as e2:
                     logger.error(f"備用 PDF 處理也失敗: {e2}")
                     return []
@@ -194,12 +194,24 @@ class IncrementalRAGUpdater:
             with open(file_path, 'r', encoding='utf-8') as f:
                 text = f.read()
             cleaned_text = self.text_processor.clean_text(text)
-            chunks = self.text_processor.chunk_text(cleaned_text)
+            chunks = self.text_processor.chunk_text(cleaned_text, source_path=str(file_path))
         
         # 更新元資料
         for chunk in chunks:
             chunk.metadata['source'] = file_path.name
             chunk.metadata['processed_date'] = datetime.now().isoformat()
+            
+            # 如果 chunk 中沒有頁碼，嘗試從內容中提取
+            if 'page' not in chunk.metadata and 'source_page' not in chunk.metadata:
+                import re
+                # 嘗試從內容中提取頁碼（=== Page X === 格式）
+                page_match = re.search(r'=== Page (\d+) ===', chunk.page_content)
+                if page_match:
+                    page_num = int(page_match.group(1))
+                    chunk.metadata['page'] = page_num
+                    chunk.metadata['source_page'] = page_num
+                    # 從內容中移除頁碼標記（已經在 chunk_text 中處理，這裡作為備用）
+                    chunk.page_content = re.sub(r'=== Page \d+ ===\s*\n?', '', chunk.page_content).strip()
         
         return chunks
     

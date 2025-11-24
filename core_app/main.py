@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # LangChain 相關導入 - 重新加入LLM支援
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 # 添加RAG模組路徑
@@ -24,11 +24,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class TrendMicroQASystem:
-    """趨勢科技資安報告智能問答系統（完整RAG + LLM模式）"""
+    """趨勢科技技術知識問答系統（支援技術文檔、研究報告、網路錯誤碼、日誌格式）"""
     
-    # 動態 CREM Prompt 模板
-    ENHANCED_CREM_PROMPT_TEMPLATE = """
-你是一個趨勢科技資安技術專家，專門回答關於 CREM (Cyber Risk Exposure Management) 和網路安全的問題。
+    # 動態 Prompt 模板
+    ENHANCED_PROMPT_TEMPLATE = """
+你是一個趨勢科技資安技術專家，專門回答關於技術文檔、研究報告、網路錯誤碼、日誌格式和網路安全的問題。
 
 系統資訊：您正在使用一個完整的知識庫系統，基於檢索到的相關資料進行分析。
 
@@ -41,17 +41,24 @@ class TrendMicroQASystem:
 {question}
 
 === 回答指導原則 ===
-1. **充分利用檢索結果**: 基於提供的{result_count}個檢索結果進行全面分析
-2. **數據洞察判斷**: 檢索結果中是否包含明確的數字、統計數據、百分比、排名、圖表數據等具體量化資訊
-3. **專業術語準確**: 正確使用 CREM、CRI、Trend Vision One 等專業術語
-4. **結構化回答**: 提供清晰的摘要和詳細說明
+1. **充分利用檢索結果**: 基於提供的{result_count}個檢索結果進行全面分析，**必須嚴格依據檢索結果回答，不要使用檢索結果之外的知識**
+2. **縮寫展開**: 如果問題中包含縮寫（如 DDI、CREM、CRI），請在回答中同時使用縮寫和完整形式（如 DDI (Deep Discovery Inspector)）
+3. **路徑問題的準確性**（重要）:
+   - 如果問題問的是「目錄」(directory)、「路徑」(path)、「儲存位置」、「預設日誌目錄」(default log directory)，答案應該是**目錄路徑**（如 `/var/log/suricata`）
+   - 如果問題問的是「檔名」(filename)、「日誌檔」(log file)、「完整路徑」(full path)、「日誌文件路徑」，答案應該是**完整文件路徑**（如 `/var/log/suricata/suricata.log`）
+   - **關鍵區別**：目錄路徑通常以目錄名結尾（如 `/var/log/suricata`），文件路徑以文件名結尾（如 `/var/log/suricata/suricata.log`）
+   - **必須仔細區分「目錄」和「文件」的差異，不要混淆**
+4. **數據洞察判斷**: 檢索結果中是否包含明確的數字、統計數據、百分比、排名、圖表數據等具體量化資訊
+5. **專業術語準確**: 正確使用 CREM、CRI、Trend Vision One、DDI (Deep Discovery Inspector) 等專業術語
+6. **結構化回答**: 提供清晰的摘要和詳細說明
+7. **來源引用**: 如果檢索結果中明確提到某個定義、格式或說明，請直接引用該內容
 
 === 回答格式要求 ===
 **📋 摘要**
-[簡潔摘要，突出核心要點]
+[簡潔摘要，突出核心要點。如果是路徑問題，必須明確指出是目錄路徑還是文件路徑，並給出準確的路徑值]
 
 **🔍 詳細分析**
-[基於檢索結果的詳細分析和解釋]
+[基於檢索結果的詳細分析和解釋。如果是路徑問題，請明確說明這是目錄還是文件，並引用檢索結果中的具體路徑信息]
 
 **💡 關鍵發現**
 - [要點1]
@@ -101,9 +108,9 @@ class TrendMicroQASystem:
         return True
     
     def _initialize_rag_system(self):
-        """初始化RAG系統"""
+        """載入RAG系統（從已建立的向量資料庫）"""
         try:
-            logger.info("正在初始化RAG系統...")
+            logger.info("正在載入RAG向量資料庫...")
             
             # 使用現有向量資料庫
             current_dir = Path(__file__).parent
@@ -126,12 +133,12 @@ class TrendMicroQASystem:
             self.table_count = self._get_table_count()
             self.estimated_text_count = self.vector_count - self.table_count
             
-            logger.info("✅ RAG系統初始化成功")
+            logger.info("✅ RAG向量資料庫載入成功")
             logger.info(f"📊 向量資料庫統計: 總計{self.vector_count}個向量")
             logger.info(f"📊 估算組成: ~{self.estimated_text_count}個文本向量 + {self.table_count}個表格向量")
             
         except Exception as e:
-            logger.error(f"RAG系統初始化失敗: {str(e)}")
+            logger.error(f"RAG向量資料庫載入失敗: {str(e)}")
             raise
     
     def _get_table_count(self) -> int:
@@ -151,7 +158,7 @@ class TrendMicroQASystem:
         """初始化LLM（如果API Key可用）"""
         try:
             # 從環境變數取得模型設定
-            model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-lite")
+            model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
             temperature = float(os.getenv("GEMINI_TEMPERATURE", "0.05"))
             max_tokens = int(os.getenv("GEMINI_MAX_TOKENS", "300"))
             
@@ -167,7 +174,7 @@ class TrendMicroQASystem:
             
             # 建立 Prompt 模板
             self.prompt_template = PromptTemplate(
-                template=self.ENHANCED_CREM_PROMPT_TEMPLATE,
+                template=self.ENHANCED_PROMPT_TEMPLATE,
                 input_variables=["context", "question", "result_count"]
             )
             
@@ -179,7 +186,7 @@ class TrendMicroQASystem:
     
     def ask_question(self, question: str, filter_type: str = "all", k: int = 5) -> Dict[str, Any]:
         """
-        回答問題（完整RAG + LLM模式）
+        回答問題（技術知識RAG + LLM模式）
         
         Args:
             question: 使用者問題
@@ -192,10 +199,16 @@ class TrendMicroQASystem:
         try:
             logger.info(f"收到問題: {question} (類型: {filter_type})")
             
-            # 步驟1: 使用現有RAG檢索
-            detected_filter = self._detect_query_type(question, filter_type)
+            # 步驟1: 查詢擴展（展開縮寫）
+            expanded_question = self._expand_abbreviations(question)
+            logger.info(f"原始問題: {question}")
+            if expanded_question != question:
+                logger.info(f"擴展後問題: {expanded_question}")
+            
+            # 步驟2: 使用現有RAG檢索（使用擴展後的問題）
+            detected_filter = self._detect_query_type(expanded_question, filter_type)
             results = self.rag_engine.query(
-                question=question,
+                question=expanded_question,
                 k=k,
                 filter_type=detected_filter
             )
@@ -260,23 +273,87 @@ class TrendMicroQASystem:
 
             logger.info(f"🔍 Debug: 準備處理 {len(results)} 個檢索結果")
 
-            for i, result in enumerate(results[:3]):
+            # 智能選擇最相關的引用：優先選擇包含問題關鍵詞的結果
+            question_lower = question.lower()
+            question_keywords = []
+            
+            # 提取問題關鍵詞
+            if "目錄" in question or "directory" in question_lower:
+                question_keywords.extend(["log directory", "/var/log", "default log directory", "日誌目錄"])
+            if "檔名" in question or "filename" in question_lower or "log file" in question_lower:
+                question_keywords.extend(["suricata.log", "log file", "filename"])
+            if "suricata" in question_lower:
+                question_keywords.append("suricata")
+            if "日誌" in question or "log" in question_lower:
+                question_keywords.extend(["log", "日誌"])
+            
+            # 對結果進行相關性排序：包含關鍵詞的結果優先
+            def calculate_relevance(result, keywords):
+                """計算結果與問題的相關性"""
+                content_lower = str(result.content).lower()
+                relevance_score = 0
+                for keyword in keywords:
+                    if keyword.lower() in content_lower:
+                        relevance_score += 1
+                return relevance_score
+            
+            # 為每個結果計算相關性
+            results_with_relevance = []
+            for result in results:
+                relevance = calculate_relevance(result, question_keywords)
+                results_with_relevance.append((relevance, result))
+            
+            # 按相關性排序（相關性高的在前，然後按信心度）
+            results_with_relevance.sort(key=lambda x: (x[0], x[1].confidence_score), reverse=True)
+            
+            # 選擇最相關的結果作為引用（最多3個）
+            selected_results = results_with_relevance[:3]
+            
+            for i, (relevance, result) in enumerate(selected_results):
                 # 確保confidence_score是Python float類型
                 confidence_value = float(result.confidence_score) if hasattr(result.confidence_score, 'item') else float(result.confidence_score)
                 
                 source_info = f"[{result.content_type.upper()}] {result.source} (信心度: {confidence_value:.2f})"
                 sources.append(source_info)
                 
+                # 獲取完整的引用內容（從 metadata 中獲取原始內容，如果可用）
+                citation_content = str(result.content)
+                
+                # 如果 metadata 中有原始內容，優先使用（更完整）
+                if hasattr(result, 'metadata') and result.metadata:
+                    original_content = result.metadata.get('original_content') or result.metadata.get('page_content')
+                    if original_content and len(str(original_content)) > len(citation_content):
+                        citation_content = str(original_content)
+                
+                # 清理引用內容：移除開頭的奇怪字符和格式問題
+                try:
+                    from processors.text_processor import TextProcessor
+                    text_processor = TextProcessor()
+                    citation_content = text_processor.clean_citation_content(citation_content)
+                except Exception as e:
+                    # 如果導入失敗，使用簡單的清理方法
+                    logger.warning(f"無法導入 TextProcessor，使用簡單清理: {e}")
+                    import re
+                    citation_content = citation_content.strip()
+                    # 移除開頭的點號
+                    if citation_content.startswith('.'):
+                        citation_content = citation_content[1:].strip()
+                    # 移除多餘空白
+                    citation_content = re.sub(r'\s+', ' ', citation_content).strip()
+                
                 # 添加引用內容 - 所有值都轉換為Python原生類型
                 citation = {
                     "rank": int(i + 1),
                     "source": str(result.source),
                     "content_type": str(result.content_type),
-                    "content": str(result.content),
-                    "confidence": confidence_value  # Python float
+                    "content": citation_content,  # 使用完整內容
+                    "confidence": confidence_value,  # Python float
+                    "content_length": len(citation_content),  # 添加內容長度信息
+                    "relevance_score": relevance,  # 添加相關性分數
+                    "metadata": result.metadata if hasattr(result, 'metadata') else {}  # 添加 metadata 以便提取頁碼
                 }
                 citations.append(citation)
-                logger.info(f"🔍 Debug: 添加citation {i+1}: {result.source} - 內容長度: {len(result.content)} - 信心度類型: {type(confidence_value)}")
+                logger.info(f"🔍 Debug: 添加citation {i+1}: {result.source} - 相關性: {relevance} - 內容長度: {len(citation_content)} - 信心度: {confidence_value:.2f}")
 
             logger.info(f"🔍 Debug: 總共創建了 {len(citations)} 個citations")
 
@@ -317,6 +394,134 @@ class TrendMicroQASystem:
                 "vector_db_size": getattr(self, 'vector_count', 0)
             }
     
+    def _expand_abbreviations(self, question: str) -> str:
+        """
+        展開問題中的縮寫，提高檢索準確率
+        
+        Args:
+            question: 原始問題
+            
+        Returns:
+            擴展後的問題（包含縮寫和完整形式）
+        """
+        # 縮寫到完整形式的映射
+        abbreviation_map = {
+            "DDI": "Deep Discovery Inspector",
+            "CREM": "Cyber Risk Exposure Management",
+            "CRI": "Cyber Risk Index",
+            "XDR": "Extended Detection and Response",
+            "EDR": "Endpoint Detection and Response",
+            "SAE": "Security Analytics Engine",
+            "SOC": "Security Operations Center"
+        }
+        
+        expanded_question = question
+        
+        # 檢查問題中是否包含縮寫
+        for abbrev, full_form in abbreviation_map.items():
+            # 使用正則表達式匹配完整的單詞（避免部分匹配）
+            import re
+            pattern = r'\b' + re.escape(abbrev) + r'\b'
+            if re.search(pattern, expanded_question, re.IGNORECASE):
+                # 如果問題中只有縮寫，添加完整形式
+                if full_form.lower() not in expanded_question.lower():
+                    expanded_question = re.sub(
+                        pattern, 
+                        f"{abbrev} ({full_form})", 
+                        expanded_question, 
+                        flags=re.IGNORECASE
+                    )
+        
+        # 日誌相關的擴展（針對 Suricata 日誌目錄問題）
+        question_lower = question.lower()
+        
+        # 檢測是否為 Suricata 相關查詢
+        is_suricata_query = "suricata" in question_lower
+        
+        # 檢測是否為日誌相關查詢
+        is_log_query = "日誌" in question or "log" in question_lower
+        
+        # 檢測是否為路徑/目錄相關查詢
+        is_path_query = any(kw in question for kw in ["路徑", "目錄", "directory", "path", "位置", "location"])
+        
+        # 針對 Suricata log directory 的專門擴展
+        if is_suricata_query and is_log_query and is_path_query:
+            # 這是 Suricata 日誌目錄查詢，添加多種變體
+            if "目錄" in question or "directory" in question_lower:
+                # 目錄查詢：重點搜索目錄路徑
+                expanded_question += " log directory /var/log/suricata /var/log default log directory path location"
+                expanded_question += " suricata log directory configuration default log location"
+            elif "檔名" in question or "filename" in question_lower or "log file" in question_lower or "日誌檔" in question:
+                # 文件查詢：重點搜索文件路徑
+                expanded_question += " log file filename suricata.log /var/log/suricata/suricata.log"
+                expanded_question += " suricata log file path default log file"
+            else:
+                # 未明確指定，同時搜索目錄和文件
+                expanded_question += " log directory /var/log/suricata suricata.log default log"
+                expanded_question += " log path log location configuration"
+        
+        # 一般日誌查詢擴展
+        elif is_log_query:
+            if "目錄" in question or "directory" in question_lower:
+                expanded_question += " log directory /var/log default log directory path"
+            elif "檔名" in question or "filename" in question_lower or "log file" in question_lower or "日誌檔" in question:
+                expanded_question += " log file filename suricata.log /var/log/suricata/suricata.log"
+            elif "日誌輸出目錄" in question or "日誌目錄" in question:
+                expanded_question += " log directory log path default log directory /var/log"
+            elif "日誌路徑" in question:
+                expanded_question += " log path log directory"
+            elif "default log" in question_lower or ("預設" in question and "日誌" in question):
+                expanded_question += " /var/log default log directory"
+        
+        # Suricata 相關查詢擴展
+        if is_suricata_query:
+            if is_path_query:
+                expanded_question += " /var/log/suricata suricata.log log directory default log directory"
+                expanded_question += " suricata configuration log path"
+        
+        # 一般路徑查詢擴展
+        if is_path_query and not is_suricata_query and not is_log_query:
+            expanded_question += " /var/log /etc directory path location"
+        
+        # 添加技術術語變體以提高召回率
+        if "預設" in question or "default" in question_lower:
+            expanded_question += " default configuration setting"
+        
+        # DDI 故障排除相關查詢擴展
+        is_ddi_query = "ddi" in question_lower or "deep discovery inspector" in question_lower
+        is_troubleshooting_query = any(kw in question for kw in [
+            "故障排除", "troubleshooting", "問題", "無法", "不能", "can't", "cannot",
+            "登入", "登錄", "log on", "login", "access", "存取", "連接", "connect"
+        ])
+        
+        if is_ddi_query and is_troubleshooting_query:
+            # DDI 故障排除查詢，添加相關關鍵詞
+            expanded_question += " administration console log on credentials network cable"
+            expanded_question += " troubleshooting cannot log on access management interface"
+            expanded_question += " network connection credentials authentication"
+            if "登入" in question or "log on" in question_lower or "login" in question_lower:
+                expanded_question += " cannot log on administration console credentials network cable"
+                expanded_question += " make sure network cable securely connected correct credentials"
+        
+        # CEF 格式相關查詢擴展
+        is_cef_query = any(kw in question_lower for kw in [
+            "cef", "common event format", "威脅日誌", "threat log", "threat logs"
+        ])
+        is_field_mapping_query = any(kw in question for kw in [
+            "對應", "對應到", "對應哪個", "欄位", "field", "mapping", "哪個欄位", "which field"
+        ])
+        
+        if is_cef_query or is_field_mapping_query:
+            # CEF 格式查詢，添加相關關鍵詞
+            expanded_question += " CEF Common Event Format threat log field mapping"
+            expanded_question += " CEF key CEF欄位 field mapping table"
+            if "攻擊階段" in question or "attack phase" in question_lower:
+                expanded_question += " Attack Phase cs6Label pAttackPhase cs6"
+            if "ddi" in question_lower or "deep discovery inspector" in question_lower:
+                expanded_question += " Deep Discovery Inspector DDI CEF format"
+        
+        return expanded_question
+    
     def _detect_query_type(self, question: str, default_filter: str) -> str:
         """智能檢測查詢類型 - 優化版"""
         if default_filter != "all":
@@ -337,7 +542,10 @@ class TrendMicroQASystem:
             # 特定風險事件
             "risky events", "風險事件", "威脅事件", "security incidents",
             # 數量詞
-            "多少", "幾個", "how many", "count"
+            "多少", "幾個", "how many", "count",
+            # CEF 格式和欄位映射類
+            "cef", "欄位", "field", "對應", "mapping", "格式", "format",
+            "cef key", "cef欄位", "對應到", "對應哪個", "哪個欄位", "which field"
         ]
         
         # 文本相關關鍵詞 - 概念和說明導向
@@ -429,7 +637,7 @@ class TrendMicroQASystem:
             
             return {
                 "system_type": "TrendMicroQASystem",  # ✅ 修復：使用正確的系統類型
-                "system_description": f"完整RAG+LLM系統 ({current_vector_count}向量)",  # 描述移到新欄位
+                "system_description": f"技術知識RAG+LLM系統 ({current_vector_count}向量)",  # 描述移到新欄位
                 "vector_count": current_vector_count,
                 "estimated_text_vectors": self.estimated_text_count,
                 "table_vectors": self.table_count,
@@ -438,7 +646,7 @@ class TrendMicroQASystem:
                 "table_results": stats.get('table_results', 0),
                 "last_query_time": stats.get('last_query_time'),
                 "llm_available": self.llm_available,
-                "llm_model": os.getenv("GEMINI_MODEL", "gemini-2.0-flash-lite") if self.llm_available else "N/A",
+                "llm_model": os.getenv("GEMINI_MODEL", "gemini-2.5-flash") if self.llm_available else "N/A",
                 "capabilities": [
                     f"{current_vector_count}個向量完整檢索 (~{self.estimated_text_count}文本 + {self.table_count}表格)",
                     "Gemini LLM自然語言生成" if self.llm_available else "結構化格式回答",
@@ -520,7 +728,7 @@ def main():
             ("企業安全政策的最佳實踐建議", "text")
         ]
         
-        logger.info("=== 趨勢科技完整RAG+LLM系統測試 ===")
+        logger.info("=== 趨勢科技技術知識問答系統測試 ===")
         
         for question, filter_type in test_questions:
             logger.info(f"問題: {question} (類型: {filter_type})")

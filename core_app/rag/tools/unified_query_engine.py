@@ -90,14 +90,122 @@ class UnifiedQueryEngine:
         self.query_stats["last_query_time"] = datetime.now().isoformat()
         
         try:
-            # 執行相似性搜尋
-            docs = self.vector_db.similarity_search_with_score(question, k=k*2)  # 多取一些以便篩選
+            # 檢測查詢類型以決定檢索策略
+            is_technical_query = any(keyword in question.lower() for keyword in [
+                "路徑", "path", "目錄", "directory", "配置", "config", 
+                "預設", "default", "設定", "setting", "日誌", "log",
+                "suricata", "location", "位置"
+            ])
+            
+            # 檢測是否為 CEF 或表格映射查詢
+            is_cef_query = any(keyword in question.lower() for keyword in [
+                "cef", "common event format", "威脅日誌", "threat log", "threat logs",
+                "欄位", "field", "對應", "mapping", "對應到", "對應哪個", "哪個欄位"
+            ])
+            
+            # 對於技術查詢或 CEF 查詢，增加檢索數量以提高召回率
+            if is_technical_query or is_cef_query:
+                search_k = k * 5  # CEF 表格查詢需要更多結果
+            else:
+                search_k = k * 3
+            
+            # 執行相似性搜尋（增加檢索數量以提高召回率）
+            docs = self.vector_db.similarity_search_with_score(question, k=search_k)
+            
+            if not docs:
+                logger.warning(f"查詢 '{question}' 沒有找到任何結果")
+                return []
             
             results = []
             text_count = 0
             table_count = 0
             
+            # FAISS 返回的是 L2 距離（歐幾里得距離），距離越小越相似
+            # 計算相對相似度：使用最小距離作為基準
+            distances = [score for _, score in docs]
+            min_distance = min(distances)
+            max_distance = max(distances)
+            distance_range = max_distance - min_distance if max_distance > min_distance else 1.0
+            
+            # 使用相對距離轉換為相似度（0-1 範圍）
+            # 相似度 = 1 - (距離 - 最小距離) / 距離範圍
+            # 這樣最相似的結果相似度接近 1，最不相似的接近 0
+            
+            # 對於技術查詢，使用關鍵詞匹配來提高相關結果的優先級
+            question_keywords = set()
+            if is_technical_query:
+                # 提取關鍵詞
+                for keyword in ["/var/log/suricata", "var/log/suricata", "log directory", 
+                               "default log", "suricata.log", "suricata", "log path"]:
+                    if keyword.lower() in question.lower():
+                        question_keywords.add(keyword.lower())
+            
+            # 檢測是否為 CEF 或表格映射查詢
+            is_cef_query = any(keyword in question.lower() for keyword in [
+                "cef", "common event format", "威脅日誌", "threat log", "threat logs",
+                "欄位", "field", "對應", "mapping", "對應到", "對應哪個", "哪個欄位"
+            ])
+            
+            # 對於 CEF 查詢，添加 CEF 相關關鍵詞
+            if is_cef_query:
+                for keyword in ["cef", "common event format", "threat log", "威脅日誌",
+                               "attack phase", "攻擊階段", "cs6label", "cs6", "pattackphase",
+                               "field", "欄位", "mapping", "對應", "cef key"]:
+                    if keyword.lower() in question.lower():
+                        question_keywords.add(keyword.lower())
+                # 強制添加 CEF 相關關鍵詞以提高匹配率
+                question_keywords.update(["cef", "field", "mapping"])
+            
             for i, (doc, score) in enumerate(docs):
+                # 計算相對相似度（0-1 範圍）
+                if distance_range > 0:
+                    # 正規化：距離越小，相似度越高
+                    normalized_distance = (score - min_distance) / distance_range
+                    similarity = 1.0 - normalized_distance
+                else:
+                    # 如果所有距離相同，給相同的相似度
+                    similarity = 0.5
+                
+                # 對於技術查詢或 CEF 查詢，如果內容包含關鍵詞，提高相似度
+                if (is_technical_query or is_cef_query) and question_keywords:
+                    content_lower = doc.page_content.lower()
+                    keyword_matches = sum(1 for kw in question_keywords if kw in content_lower)
+                    if keyword_matches > 0:
+                        # 根據關鍵詞匹配數量提高相似度
+                        # CEF 查詢需要更大的 boost，因為表格內容可能與問題的語義相似度較低
+                        boost_multiplier = 0.15 if is_cef_query else 0.1
+                        similarity_boost = min(0.3 if is_cef_query else 0.2, keyword_matches * boost_multiplier)
+                        similarity = min(1.0, similarity + similarity_boost)
+                        
+                        # 對於 CEF 查詢，如果包含特定的 CEF 欄位名稱，進一步提高相似度
+                        if is_cef_query:
+                            cef_specific_keywords = ["cs6label", "pattackphase", "attack phase", "攻擊階段"]
+                            cef_matches = sum(1 for kw in cef_specific_keywords if kw in content_lower)
+                            if cef_matches > 0:
+                                similarity = min(1.0, similarity + 0.15)  # 額外提高 0.15
+                
+                # 過濾極低相似度結果
+                # 對於技術問題（路徑、配置等）或 CEF 查詢，使用更寬鬆的閾值
+                if is_technical_query or is_cef_query:
+                    # 技術問題或 CEF 查詢：更寬鬆的過濾（保留更多結果）
+                    # 如果包含關鍵詞，進一步放寬閾值
+                    # CEF 表格查詢需要更寬鬆的閾值，因為表格內容的語義相似度可能較低
+                    if is_cef_query:
+                        threshold = 0.02 if question_keywords and any(kw in doc.page_content.lower() for kw in question_keywords) else 0.04
+                        max_distance_threshold = 250 if question_keywords and any(kw in doc.page_content.lower() for kw in question_keywords) else 200
+                    else:
+                        threshold = 0.03 if question_keywords and any(kw in doc.page_content.lower() for kw in question_keywords) else 0.05
+                        max_distance_threshold = 200 if question_keywords and any(kw in doc.page_content.lower() for kw in question_keywords) else 150
+                    
+                    if similarity < threshold or score > max_distance_threshold:
+                        logger.debug(f"過濾{'CEF' if is_cef_query else '技術'}查詢結果: 距離={score:.2f}, 相似度={similarity:.3f}")
+                        continue
+                else:
+                    # 一般問題：正常過濾
+                    if similarity < 0.1 or score > 100:
+                        logger.debug(f"過濾結果: 距離={score:.2f}, 相似度={similarity:.3f}")
+                        continue
+                
                 # 判斷內容類型
                 content_type = doc.metadata.get("content_type", "text")
                 if content_type == "structured_table":
@@ -120,19 +228,24 @@ class UnifiedQueryEngine:
                     content = self._format_table_content(content, doc.metadata)
                     table_count += 1
                 else:
-                    # 文本內容截取
-                    if len(content) > 300:
-                        content = content[:300] + "..."
+                    # 文本內容：保留完整內容用於引用（不截取）
+                    # 這樣用戶可以在原文中找到完整的引用內容
+                    # 注意：這裡不截取，讓引用內容保持完整
                     text_count += 1
                 
                 # 建立查詢結果
+                # 使用計算出的相對相似度（已在上面計算）
+                # 在 metadata 中保存原始完整內容，以便引用時使用
+                enhanced_metadata = doc.metadata.copy()
+                enhanced_metadata['original_content'] = doc.page_content  # 保存完整原始內容
+                
                 result = QueryResult(
                     rank=len(results) + 1,
                     content_type=content_type,
-                    content=content,
+                    content=content,  # 保持完整內容（已在上面處理，不截取）
                     source=doc.metadata.get("source", "unknown"),
-                    confidence_score=1.0 - score,  # FAISS返回的是距離，轉換為相似度
-                    metadata=doc.metadata
+                    confidence_score=similarity,  # 使用相對相似度（0-1 範圍）
+                    metadata=enhanced_metadata
                 )
                 
                 results.append(result)

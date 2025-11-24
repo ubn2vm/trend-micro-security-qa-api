@@ -1,5 +1,5 @@
 """
-PDF 處理模組 - 專門處理趨勢科技 CREM 技術文檔
+PDF 處理模組 - 專門處理趨勢科技技術文檔
 用於提取 PDF 文本內容並進行預處理
 """
 
@@ -15,8 +15,8 @@ import os
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class CREMPDFProcessor:
-    """CREM PDF 處理器 - 專門處理趨勢科技技術文檔"""
+class PDFProcessor:
+    """PDF 處理器 - 專門處理趨勢科技技術文檔"""
     
     def __init__(self, pdf_path: str):
         """
@@ -109,7 +109,6 @@ class CREMPDFProcessor:
         text = re.sub(r'^\s*\d+\s*$', '', text, flags=re.MULTILINE)  # 移除單獨的頁碼
         
         # 保持技術術語的完整性
-        # 保護 CREM、CRI、AI、ML 等技術術語
         text = re.sub(r'\b(CREM|CRI|AI|ML|XDR|EDR|SAE)\b', r' \1 ', text, flags=re.IGNORECASE)
         
         # 移除特殊字符但保留重要標點
@@ -258,7 +257,7 @@ def extract_pdf_text(pdf_path: str) -> str:
     Returns:
         str: 提取的文本內容
     """
-    processor = CREMPDFProcessor(pdf_path)
+    processor = PDFProcessor(pdf_path)
     return processor.extract_text()
 
 def comprehensive_validation(pdf_path: str, output_dir: str = None) -> Dict[str, Any]:
@@ -274,7 +273,7 @@ def comprehensive_validation(pdf_path: str, output_dir: str = None) -> Dict[str,
     """
     try:
         # 1. 初始化處理器
-        processor = CREMPDFProcessor(pdf_path)
+        processor = PDFProcessor(pdf_path)
         
         # 2. 提取文本
         text = processor.extract_text()

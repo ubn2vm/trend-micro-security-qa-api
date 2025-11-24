@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 
 # 建立 FastAPI 應用程式
 app = FastAPI(
-    title=os.getenv("API_TITLE", "Trend Micro Advanced RAG API"),
-    description=os.getenv("API_DESCRIPTION", "支援表格和文本混合查詢的進階RAG系統 - Trend Micro 2025 Cyber Risk Report"),
+    title=os.getenv("API_TITLE", "Trend Micro Technical Knowledge API"),
+    description=os.getenv("API_DESCRIPTION", "支援技術文檔、研究報告、網路錯誤碼、日誌格式查詢的 RAG 系統"),
     version=os.getenv("API_VERSION", "2.0.0"),
     docs_url="/docs",
     redoc_url="/redoc"
@@ -155,10 +155,10 @@ async def startup_event():
 async def root():
     """Root endpoint - API Information"""
     return {
-        "message": "Trend Micro Advanced RAG API",
+        "message": "Trend Micro Technical Knowledge API",
         "version": os.getenv("API_VERSION", "2.0.0"),
-        "description": "支援表格和文本混合查詢的進階RAG系統",
-        "features": "表格查詢 + 文本查詢 + 多語言支援",
+        "description": "支援技術文檔、研究報告、網路錯誤碼、日誌格式查詢的 RAG 系統",
+        "features": "技術文檔查詢 + 研究報告 + 網路錯誤碼 + 日誌格式 + 多語言支援",
         "docs": "/docs",
         "health": "/health",
         "examples": "/examples",
@@ -192,7 +192,7 @@ async def health_check():
             components["api_key"] = "error"
         
         # 檢查模型設定
-        model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-lite")
+        model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
         temperature = os.getenv("GEMINI_TEMPERATURE", "0.05")
         max_tokens = os.getenv("GEMINI_MAX_TOKENS", "300")
         environment["model"] = model_name
@@ -381,12 +381,16 @@ async def get_system_info():
     table_count = get_dynamic_table_count()
     
     return {
-        "title": "Trend Micro Advanced RAG API",
-        "description": "支援表格和文本混合查詢的進階RAG系統 - Trend Micro 2025 Cyber Risk Report",
+        "title": "Trend Micro Technical Knowledge API",
+        "description": "支援技術文檔、研究報告、網路錯誤碼、日誌格式查詢的 RAG 系統",
         "version": app.version,
-        "rag_type": "表格+文本混合RAG",
+        "rag_type": "技術知識庫RAG",
         "capabilities": [
             f"{table_count}個表格數據查詢",  # ✅ 動態顯示
+            "技術文檔查詢",
+            "研究報告查詢",
+            "網路錯誤碼查詢",
+            "日誌格式查詢",
             "混合文本+表格搜尋",
             "多語言支援(中文/英文)",
             "語義搜尋",
