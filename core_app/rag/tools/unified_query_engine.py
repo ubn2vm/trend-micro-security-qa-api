@@ -75,7 +75,7 @@ class UnifiedQueryEngine:
         Returns:
             查詢結果列表
             
-        >>> engine = UnifiedQueryEngine("vector_store/crem_faiss_index")
+        >>> engine = UnifiedQueryEngine("vector_store/default_faiss_index")
         >>> engine.load_vector_db()
         True
         >>> results = engine.query("風險事件", k=3)
@@ -338,7 +338,7 @@ class UnifiedQueryEngine:
 
 def demo_unified_query():
     """Demo函數：統一查詢測試"""
-    engine = UnifiedQueryEngine("vector_store/crem_faiss_index")
+    engine = UnifiedQueryEngine("vector_store/default_faiss_index")
     
     if not engine.load_vector_db():
         logger.error("無法載入向量資料庫")

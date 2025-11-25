@@ -201,7 +201,7 @@ async def health_check():
         
         # 檢查 RAG 向量資料庫路徑
         current_dir = Path(__file__).parent
-        rag_vector_dir = current_dir / "rag" / "vector_store" / "crem_faiss_index"
+        rag_vector_dir = current_dir / "rag" / "vector_store" / "default_faiss_index"
         
         if rag_vector_dir.exists():
             environment["rag_vector_dir"] = f"{rag_vector_dir} (Exists)"

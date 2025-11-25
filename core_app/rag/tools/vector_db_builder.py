@@ -78,7 +78,7 @@ class VectorDatabaseBuilder:
 def build_and_save_knowledge_base():
     """從已分塊資料建立並儲存向量資料庫的便捷函數"""
     chunk_path = "data/text_chunks.json"
-    vector_dir = "vector_store/crem_faiss_index"
+    vector_dir = "vector_store/default_faiss_index"
     builder = VectorDatabaseBuilder(chunk_path, vector_dir)
     builder.load_chunks()
     builder.build_vector_db()

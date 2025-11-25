@@ -25,7 +25,7 @@ class TestTableRAGIntegration(unittest.TestCase):
     def setUp(self):
         """測試設定"""
         self.test_data_dir = Path("data/processed")
-        self.test_vector_dir = Path("vector_store/crem_faiss_index")
+        self.test_vector_dir = Path("vector_store/default_faiss_index")
         
         # 測試檔案路徑
         self.extracted_tables_file = self.test_data_dir / "extracted_tables.json"

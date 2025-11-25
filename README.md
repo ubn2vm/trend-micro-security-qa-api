@@ -14,7 +14,7 @@ Transform hours of document hunting into seconds of intelligent answers with our
 
 The chatbot can now answer questions about DDI syslog, Suricata rules, and network error codes. Below are example queries that demonstrate the system's capabilities:
 
-*Screenshot: `docs/chatbot.gif`*
+![Chatbot demo](docs/screenshots/chatbot.gif)
 
 
 ## Technology Stack

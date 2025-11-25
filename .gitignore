@@ -38,17 +38,8 @@ htmlcov/
 
 # Batch files (keep necessary scripts)
 *.bat
-!presentation/scripts/*.bat
 !tests/scripts/*.bat
 !scripts/*.bat
-
-# local demo test
-presentation/demo
-
-# 文檔管理
-# 小文件（< 10MB）可以上傳到 GitHub，大文件使用 GitHub Releases
-# 如果需要忽略所有 PDF，取消下面這行的註釋：
-# core_app/rag/data/source/*.pdf
 
 # 向量資料庫（不上傳，可以重新生成）
 core_app/rag/vector_store/

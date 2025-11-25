@@ -24,13 +24,20 @@ LARGE_DOCUMENTS_URL = os.getenv(
 )
 
 def check_documents(source_dir: Path) -> tuple:
-    """檢查文檔，返回已有和缺失的文件列表"""
+    """
+    檢查文檔，返回已有和缺失的文件列表。
+
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as tmp_dir:
+    ...     tmp_path = Path(tmp_dir)
+    ...     _ = (tmp_path / "ddi_6.8.sp1_ag.pdf").write_bytes(b"demo")
+    ...     existing, missing = check_documents(tmp_path)
+    ...     sorted(doc for doc, _ in existing), missing
+    (['ddi_6.8.sp1_ag.pdf'], ['ddi_6.8.sp1_syslog.pdf'])
+    """
     required_docs = [
         "ddi_6.8.sp1_ag.pdf",
-        "ddi_6.8.sp1_syslog.pdf", 
-        "docs-suricata-io-en-latest.pdf",
-        "Research-Risk-Report-2025.pdf",
-        "sb-crem.pdf"
+        "ddi_6.8.sp1_syslog.pdf"
     ]
     
     existing = []
@@ -79,7 +86,7 @@ def main():
     # 設定路徑
     rag_root = project_root / "core_app" / "rag"
     source_dir = rag_root / "data" / "source"
-    vector_dir = rag_root / "vector_store" / "crem_faiss_index"
+    vector_dir = rag_root / "vector_store" / "default_faiss_index"
     
     # 確保目錄存在
     source_dir.mkdir(parents=True, exist_ok=True)

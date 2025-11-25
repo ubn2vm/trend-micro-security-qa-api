@@ -340,7 +340,7 @@ class IncrementalRAGUpdater:
 def incremental_update_knowledge_base():
     """執行增量更新知識庫"""
     data_dir = "data"
-    vector_dir = "vector_store/crem_faiss_index"
+    vector_dir = "vector_store/default_faiss_index"
     
     updater = IncrementalRAGUpdater(data_dir, vector_dir)
     stats = updater.update_knowledge_base()

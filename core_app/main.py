@@ -114,7 +114,7 @@ class TrendMicroQASystem:
             
             # 使用現有向量資料庫
             current_dir = Path(__file__).parent
-            vector_dir = current_dir / "rag" / "vector_store" / "crem_faiss_index"
+            vector_dir = current_dir / "rag" / "vector_store" / "default_faiss_index"
             
             if not vector_dir.exists():
                 raise FileNotFoundError(f"RAG 向量資料庫不存在: {vector_dir}")

@@ -14,7 +14,7 @@ services:
       - GEMINI_MAX_TOKENS=${GEMINI_MAX_TOKENS:-200}
       - API_HOST=0.0.0.0
       - API_PORT=8000
-      - RAG_VECTOR_DIR=${RAG_VECTOR_DIR:-core_app/rag/vector_store/crem_faiss_index}
+      - RAG_VECTOR_DIR=${RAG_VECTOR_DIR:-core_app/rag/vector_store/default_faiss_index}
       - RAG_EMBEDDING_MODEL=${RAG_EMBEDDING_MODEL:-sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     volumes:

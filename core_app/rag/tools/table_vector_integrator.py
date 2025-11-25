@@ -199,7 +199,7 @@ class TableVectorIntegrator:
 
 def integrate_tables_demo():
     """Demo函數：整合表格到向量資料庫"""
-    integrator = TableVectorIntegrator("vector_store/crem_faiss_index")
+    integrator = TableVectorIntegrator("vector_store/default_faiss_index")
     
     # 表格文本檔案路徑
     table_texts_path = "data/processed/table_texts.json"

@@ -20,7 +20,7 @@ try:
     
     rag_root = project_root / "core_app" / "rag"
     data_dir = rag_root / "data"
-    vector_dir = rag_root / "vector_store" / "crem_faiss_index"
+    vector_dir = rag_root / "vector_store" / "default_faiss_index"
     
     print(f"\n📁 資料目錄: {data_dir}")
     print(f"💾 向量資料庫: {vector_dir}")
